@@ -1,0 +1,359 @@
+.filepond--root {
+	width: 135px;
+	margin: 0 auto;
+}
+
+.filepond--drop-label.filepond--drop-label label {
+	font-size: 13px;
+}
+
+.notification {
+	background-color: #ffffff;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+	padding: 10px;
+	border-radius: 8px;
+	width: 80%;
+	display: flex;
+	align-items: center;
+	min-height: 58.39px;
+}
+
+.notification h2 {
+	margin-top: 0;
+	margin-bottom: .3rem !important;
+	font-size: 1em;
+	color: #333333;
+	flex: 1;
+}
+
+.notification p {
+	width: 19.5em;
+	font-size: 0.9em;
+	color: #666666;
+	line-height: 1;
+	flex: 1;
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.notification img {
+	width: 50px;
+	height: auto;
+	/* Ajusta la altura automáticamente para mantener la relación de aspecto */
+	max-height: 100px;
+	/* Establece una altura máxima para la imagen */
+	object-fit: contain;
+	/* Ajusta la imagen dentro del tamaño especificado */
+	margin: auto;
+	/* Centra la imagen vertical y horizontalmente */
+	display: block;
+	/* Asegura que la imagen se comporte correctamente dentro del contenedor */
+}
+
+.topic_noti-checkbox {
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+	cursor: pointer;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;	
+	margin-bottom: 10;
+	border-radius: 20%;
+	outline: 0;
+}
+
+.topic_noti-checkbox img {
+	border-radius: 20%;
+	width: 70px;
+	height: 70px;
+	max-height: 100px;
+	object-fit: contain;
+	margin: auto;
+	display: block;
+}
+
+.topic_noti-checkbox input[type="checkbox"] {
+	display: none;
+}
+
+.topic_noti-checkbox-checked {
+	border: #3b71ca 2px solid;
+}
+
+.nopad {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+.esquina-check .fa{
+	display: none;
+}
+.topic_noti-checkbox-checked .esquina-check{
+	width: 30px;
+	height: 30px;
+	background-color: #3b71ca;
+	position: absolute;
+	margin-top: -2px;
+	border-radius: 10px 0px;
+	clip-path: polygon(0 0, 100% 0, 0 100%);	
+}
+
+.topic_noti-checkbox-checked .esquina-check .fa{
+	position: absolute;
+	display: inline;
+	color: #ffffff;
+	font-size: 10px;
+	margin-left: 4px;
+	margin-top: 5px;
+}
+
+
+#img_carga {
+	width: 200px;
+	animation: escala .7s alternate infinite ease-in;
+	z-index: 993;
+}
+
+#carga {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+	background: rgba(51, 51, 51, 0.4);
+	z-index: 991;
+}
+
+#precarg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+#car_circulo {
+	display: block;
+	position: relative;
+	left: 50%;
+	top: 50%;
+	width: 150px;
+	height: 150px;
+	margin: -75px 0 0 -75px;
+	border-radius: 50%;
+	border: 3px solid transparent;
+	border-top-color: #130c80;
+	-webkit-animation: spin 2s linear infinite;
+	animation: spin 2s linear infinite;
+}
+
+#car_circulo:before {
+	content: "";
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	right: 5px;
+	bottom: 5px;
+	border-radius: 50%;
+	border: 3px solid transparent;
+	border-top-color: #40a629;
+	-webkit-animation: spin 3s linear infinite;
+	animation: spin 3s linear infinite;
+}
+
+#car_circulo:after {
+	content: "";
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	right: 15px;
+	bottom: 15px;
+	border-radius: 50%;
+	border: 3px solid transparent;
+	border-top-color: #ffffff;
+	-webkit-animation: spin 1.5s linear infinite;
+	animation: spin 1.5s linear infinite;
+}
+
+@-webkit-keyframes spin {
+	0% {
+		-webkit-transform: rotate(0deg);
+		-ms-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+
+	100% {
+		-webkit-transform: rotate(360deg);
+		-ms-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes escala {
+	0% {
+		transform: scale(.4);
+	}
+
+	100% {
+		transform: scale(.6);
+	}
+}
+
+.navbar button:hover{
+	color: #fff;
+	background-color: #130c80;
+}
+
+body{
+	background-color: #f8f9fc;
+}
+
+.bntImprimirTable{
+	border: none;
+    border-radius: 15px;
+    background-color: #fff;
+    box-shadow: 1px 0 2px 0 #3b71ca !important;
+    padding: 3px 10px;
+    margin: 10px;
+    font-weight: 600;
+}
+
+.bntImprimirTable:hover{
+	background-color: #130c80;
+	color: #fff;
+	box-shadow: 0 0 3px #000;
+}
+
+.highcharts-figure,
+.highcharts-data-table table {
+    min-width: 320px;
+    max-width: 660px;
+    margin: 1em auto;
+}
+
+.highcharts-data-table table {
+    font-family: Verdana, sans-serif;
+    border-collapse: collapse;
+    border: 1px solid #ebebeb;
+    margin: 10px auto;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: #555;
+}
+
+.highcharts-data-table th {
+    font-weight: 600;
+    padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+    padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+.highcharts-data-table tr:hover {
+    background: #f1f7ff;
+}
+
+.highcharts-description {
+    margin: 0.3rem 10px;
+}
+
+.bntGraficar{
+	font-weight: 600 !important;
+}
+
+.bntGraficar:hover{
+	background-color: #14a44d !important;
+	color: #fff !important;
+}
+
+/* Estilos generales */
+.custom-btn {
+	border: 2px solid transparent !important;
+	background-color: white !important;
+	transition: all 0.3s ease !important;
+	font-weight: bold !important;
+}
+
+/* Espaciado entre icono y texto */
+.custom-btn i {
+	margin-right: 5px !important;
+}
+
+/* ALL (Naranja) */
+.all-btn {
+	color: #ff9800 !important;
+	border-color: #ff9800 !important;
+}
+.all-btn:hover, .btn-check:checked + .all-btn {
+	background-color: #ff9800 !important;
+	color: white !important;
+	border-color: #e68900 !important;
+}
+
+/* APK (Verde Android) */
+.apk-btn {
+	color: #4caf50 !important;
+	border-color: #4caf50 !important;
+}
+.apk-btn:hover, .btn-check:checked + .apk-btn {
+	background-color: #4caf50 !important;
+	color: white !important;
+	border-color: #388e3c !important;
+}
+
+/* Kiosco (Azul) */
+.kiosco-btn {
+	color: #007bff !important;
+	border-color: #007bff !important;
+}
+.kiosco-btn:hover, .btn-check:checked + .kiosco-btn {
+	background-color: #007bff !important;
+	color: white !important;
+	border-color: #0056b3 !important;
+}
+
+.contentImgDash{
+	width: 50px;
+	height: 50px;    
+	margin: 0 5px;
+}
+.contentImgDash img{
+	object-fit: contain;
+	aspect-ratio: 1/1;
+	width: 100%;
+}
+
+
+#btnMedicos.medico_actual {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+#btnPsicologos.medico_actual {
+    background-color: #198754;
+    color: white;
+    border-color: #146c43;
+}
+
+#btnNutriologos.medico_actual {
+    background-color: #ffc107;
+    color: #212529;
+    border-color: #d39e00;
+}

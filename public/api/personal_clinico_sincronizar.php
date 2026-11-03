@@ -1,0 +1,30 @@
+<?php
+declare(strict_types=1);
+
+require_once dirname(__DIR__,2).'/config/bootstrap.php';
+use App\Auth\Auth;use App\Database\Connection;use App\Security\Security;use App\Telemedicina\Schema;use App\Telemedicina\LegacyConnection;
+Auth::requireAdmin();header('Content-Type: application/json; charset=utf-8');
+try{
+ $pdo=Connection::get();Schema::ensure($pdo);$legacy=LegacyConnection::get();
+ $usaCta=(bool)$legacy->query("SELECT CASE WHEN OBJECT_ID('fernandoruiz.cta_medicos','U') IS NOT NULL THEN 1 ELSE 0 END")->fetchColumn();$med=$usaCta?'[fernandoruiz].[cta_medicos]':'[fernandoruiz].[cat_Medicos]';$medObj=$usaCta?'fernandoruiz.cta_medicos':'fernandoruiz.cat_Medicos';
+ $ok=(bool)$legacy->query("SELECT CASE WHEN OBJECT_ID('{$medObj}','U') IS NOT NULL AND OBJECT_ID('dbo.tbl_permisosVending','U') IS NOT NULL AND OBJECT_ID('fernandoruiz.cat_SucursalClinica','U') IS NOT NULL AND OBJECT_ID('fernandoruiz.tbl_HorariosMedicos','U') IS NOT NULL AND OBJECT_ID('fernandoruiz.tbl_notificaciones','U') IS NOT NULL AND OBJECT_ID('fernandoruiz.tbl_EvCitasUsuariosWeb','U') IS NOT NULL THEN 1 ELSE 0 END")->fetchColumn();
+ if(!$ok)throw new RuntimeException('No se encontraron las tablas esperadas en fernandoruiz y dbo.');
+ $rows=$legacy->query("SELECT md.id_Medico,md.st_Nombre,md.st_ApellidoPaterno,md.st_ApellidoMaterno,sc.st_Nombre sucursal,pr.i_grupo,pr.st_vendings,pr.i_activo_consulta,pr.i_activo,
+        h.Horaentrada, h.HoraSalida, nt.i_notificacion, ev.EnConsulta
+        FROM {$med} md
+        INNER JOIN [dbo].[tbl_permisosVending] pr ON pr.id_medico=md.id_Medico
+        LEFT JOIN [fernandoruiz].[cat_SucursalClinica] sc ON sc.id_SucursalClinica=md.id_SucursalClinica
+        OUTER APPLY (SELECT TOP 1 LEFT(CONVERT(VARCHAR(8),hm.dt_FechaInicio,108),5) Horaentrada,LEFT(CONVERT(VARCHAR(8),hm.dt_FechaFin,108),5) HoraSalida
+          FROM [fernandoruiz].[tbl_HorariosMedicos] hm WHERE hm.id_Medico=md.id_Medico AND hm.id_TipoPermiso=1
+          AND hm.st_Descripcion COLLATE Latin1_General_CI_AI=CASE DATEPART(WEEKDAY,GETDATE()) WHEN 1 THEN 'Domingo' WHEN 2 THEN 'Lunes' WHEN 3 THEN 'Martes' WHEN 4 THEN 'Miercoles' WHEN 5 THEN 'Jueves' WHEN 6 THEN 'Viernes' WHEN 7 THEN 'Sabado' END COLLATE Latin1_General_CI_AI) h
+        OUTER APPLY (SELECT TOP 1 n.i_notificacion FROM [fernandoruiz].[tbl_notificaciones] n WHERE n.id_medico=md.id_Medico AND CAST(n.dt_fecha_registro AS DATE)=CAST(GETDATE() AS DATE) ORDER BY n.dt_fecha_registro DESC) nt
+        OUTER APPLY (SELECT TOP 1 c.EnConsulta FROM [fernandoruiz].[tbl_EvCitasUsuariosWeb] c WHERE c.id_medico=md.id_Medico AND CAST(c.dt_fechaRegistro AS DATE)=CAST(GETDATE() AS DATE) ORDER BY c.dt_fechaRegistro DESC) ev
+        WHERE md.i_videollamada=1 AND md.i_Activo=1 AND pr.i_grupo IN(20,23,24)")->fetchAll();
+ $up=$pdo->prepare("UPDATE vendingm.telemedicina_personal SET grupo_legacy=:grupo,tipo_profesional=:tipo,nombre=:nombre,apellido=:apellido,sucursal_legacy=:sucursal,vendings_legacy=:vendings,estado_operativo=:estado,sesion_activa=:sesion,hora_inicio=:inicio,hora_fin=:fin,activo=:activo,fecha_sincronizacion=SYSDATETIME(),fecha_actualizacion=SYSDATETIME() WHERE id_medico_legacy=:legacy");
+ $ins=$pdo->prepare("INSERT INTO vendingm.telemedicina_personal(id_medico_legacy,grupo_legacy,tipo_profesional,nombre,apellido,sucursal_legacy,vendings_legacy,estado_operativo,sesion_activa,hora_inicio,hora_fin,activo,fecha_sincronizacion) OUTPUT INSERTED.id_personal VALUES(:legacy,:grupo,:tipo,:nombre,:apellido,:sucursal,:vendings,:estado,:sesion,:inicio,:fin,:activo,SYSDATETIME())");
+ $findId=$pdo->prepare('SELECT id_personal FROM vendingm.telemedicina_personal WHERE id_medico_legacy=:legacy');$link=$pdo->prepare('INSERT INTO vendingm.telemedicina_personal_mosi(id_personal,id_mosi,asignado_por) SELECT :personal,mm.id_mosi,:usuario FROM vendingm.maquinas m INNER JOIN vendingm.telemedicina_mosi_maquinas mm ON mm.id_maquina=m.id_maquina WHERE (m.numero_serie=:token1 OR m.codigo_interno=:token2 OR CONVERT(NVARCHAR(30),m.id_maquina)=:token3) AND NOT EXISTS(SELECT 1 FROM vendingm.telemedicina_personal_mosi x WHERE x.id_personal=:personal2 AND x.id_mosi=mm.id_mosi)');
+ $creados=0;$actualizados=0;$vinculos=0;$pdo->beginTransaction();
+ foreach($rows as $r){$tipo=match((int)$r['i_grupo']){23=>'nutriologo',24=>'psicologo',default=>'medico'};$ocupado=in_array((int)($r['i_notificacion']??0),[1,2],true)||in_array((int)($r['EnConsulta']??0),[1,2],true);$estado=$ocupado?'en_consulta':(((int)$r['i_activo']===1&&(int)$r['i_activo_consulta']===1)?'disponible':'desconectado');$data=['legacy'=>(int)$r['id_Medico'],'grupo'=>(int)$r['i_grupo'],'tipo'=>$tipo,'nombre'=>trim((string)$r['st_Nombre']),'apellido'=>trim((string)($r['st_ApellidoPaterno'].' '.$r['st_ApellidoMaterno']))?:null,'sucursal'=>$r['sucursal']?:null,'vendings'=>$r['st_vendings']?:null,'estado'=>$estado,'sesion'=>(int)$r['i_activo_consulta'],'inicio'=>$r['Horaentrada']?:null,'fin'=>$r['HoraSalida']?:null,'activo'=>(int)$r['i_activo']];$findId->execute(['legacy'=>$data['legacy']]);$id=$findId->fetchColumn();if($id){$up->execute($data);$id=(int)$id;$actualizados++;}else{$ins->execute($data);$id=(int)$ins->fetchColumn();$creados++;}foreach(preg_split('/[,;|\s]+/',(string)$r['st_vendings'],-1,PREG_SPLIT_NO_EMPTY) as $token){$token=trim($token);$link->execute(['personal'=>$id,'usuario'=>Auth::id(),'token1'=>$token,'token2'=>$token,'token3'=>$token,'personal2'=>$id]);$vinculos+=$link->rowCount();}}
+ $pdo->commit();echo json_encode(['ok'=>true,'data'=>['leidos'=>count($rows),'creados'=>$creados,'actualizados'=>$actualizados,'vinculos_mosi'=>$vinculos]],JSON_UNESCAPED_UNICODE);
+}catch(RuntimeException $e){if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();http_response_code(422);echo json_encode(['ok'=>false,'error'=>$e->getMessage()],JSON_UNESCAPED_UNICODE);
+}catch(Throwable $e){if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();http_response_code(500);echo json_encode(['ok'=>false,'error'=>Security::publicError($e,'personal_sincronizar')],JSON_UNESCAPED_UNICODE);}

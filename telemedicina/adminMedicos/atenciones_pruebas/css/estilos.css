@@ -1,0 +1,54 @@
+ body {
+     background: #f5f5f3;
+ }
+
+ .filter-card {
+     background: #fff;
+     border-radius: 14px;
+     padding: 1.5rem;
+     border: 1px solid #e4e4e0;
+ }
+
+ .filter-title {
+     font-weight: 600;
+     font-size: 14px;
+ }
+
+ .field-label {
+     font-size: 11px;
+     text-transform: uppercase;
+     color: #888;
+     font-weight: 600;
+ }
+
+ .badge-status {
+     font-size: 11px;
+ }
+
+ /* Ajuste Select2 */
+ .select2-container .select2-selection--single {
+     height: 38px !important;
+     padding: 5px;
+     border-radius: 8px !important;
+ }
+
+ .select2-selection__rendered {
+     line-height: 26px !important;
+ }
+
+ .select2-selection__arrow {
+     height: 36px !important;
+ }
+
+ .loader-overlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background: rgba(0, 0, 0, 0.6);
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     z-index: 9999;
+ }

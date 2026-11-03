@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Deja pasar archivos y carpetas reales (css, js, imágenes)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Todo lo demás lo resuelve index.php (útil cuando agreguemos rutas tipo /api/stock)
+RewriteRule ^ index.php [L]

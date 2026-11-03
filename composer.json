@@ -1,0 +1,12 @@
+{
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require": {
+        "box/spout": "^3.3",
+        "phpoffice/phpspreadsheet": "^2.2",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}

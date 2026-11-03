@@ -1,0 +1,179 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    line-height: 1.6;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: background-image 1s ease-in-out;
+    padding: 2rem;
+    background-color: black;
+}
+
+.content {
+    max-width: 90vw;
+    margin: auto;
+}
+
+
+#img_carga {
+	width: 200px;
+	animation: escala .7s alternate infinite ease-in;
+	z-index: 993;
+}
+
+#carga {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+	background: rgba(51, 51, 51, 0.4);
+	z-index: 991;
+}
+
+#precarg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+#car_circulo {
+	display: block;
+	position: relative;
+	left: 50%;
+	top: 50%;
+	width: 150px;
+	height: 150px;
+	margin: -75px 0 0 -75px;
+	border-radius: 50%;
+	border: 3px solid transparent;
+	border-top-color: #130c80;
+	-webkit-animation: spin 2s linear infinite;
+	animation: spin 2s linear infinite;
+}
+
+#car_circulo:before {
+	content: "";
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	right: 5px;
+	bottom: 5px;
+	border-radius: 50%;
+	border: 3px solid transparent;
+	border-top-color: #40a629;
+	-webkit-animation: spin 3s linear infinite;
+	animation: spin 3s linear infinite;
+}
+
+#car_circulo:after {
+	content: "";
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	right: 15px;
+	bottom: 15px;
+	border-radius: 50%;
+	border: 3px solid transparent;
+	border-top-color: #ffffff;
+	-webkit-animation: spin 1.5s linear infinite;
+	animation: spin 1.5s linear infinite;
+}
+
+@-webkit-keyframes spin {
+	0% {
+		-webkit-transform: rotate(0deg);
+		-ms-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+
+	100% {
+		-webkit-transform: rotate(360deg);
+		-ms-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes escala {
+	0% {
+		transform: scale(.4);
+	}
+
+	100% {
+		transform: scale(.6);
+	}
+}
+
+.bntImprimirTable{
+	border: none;
+    border-radius: 15px;
+    background-color: #fff;
+    box-shadow: 1px 0 2px 0 #3b71ca !important;
+    padding: 3px 10px;
+    margin: 10px;
+    font-weight: 600;
+}
+
+.bntImprimirTable:hover{
+	background-color: #130c80;
+	color: #fff;
+	box-shadow: 0 0 3px #000;
+}
+
+#tabla_medicos td, #tabla_medicos th {
+    text-align: center;
+}
+
+
+.container_new {
+	display: flex;
+	gap: 30px;
+	align-items: center;
+	justify-content: center;
+    padding-bottom: 20px;
+}
+
+.card_new {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	background-color: white;
+	border-radius: 16px;
+	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+	padding: 20px 30px;
+	width: 300px;
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	cursor: pointer;
+}
+
+.card_new:hover {
+	transform: scale(1.05);
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.card_new img {
+	width: 60px;
+	height: 60px;
+	object-fit: contain;
+}
+
+.card_new span {
+	font-size: 1.2rem;
+	font-weight: bold;
+	color: #333;
+}
+
+
+.select_group {
+	border: 3px solid #007BFF;     /* Borde azul para resaltar */
+	box-shadow: 0 0 15px rgba(0, 123, 255, 0.5); /* Sombra suave */
+	transform: scale(1.08);        /* Ligeramente más grande */
+}

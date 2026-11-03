@@ -1,0 +1,507 @@
+/* ============================================================
+   Medical Life — Rediseño Premium + Red México Animada
+   ============================================================ */
+
+body.login-page {
+    --navy-deep: #05071A;
+    --navy: #0A0D36;
+    --navy-soft: #12175E;
+    --green: #247529;
+    --green-bright: #3EB046;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.15);
+    --ink: #FFFFFF;
+    --muted: #A0AAB2;
+    --muted-2: #636D73;
+
+    margin: 0;
+    min-height: 100vh;
+    background: var(--navy-deep);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body.login-page * { box-sizing: border-box; }
+
+/* ---------- Estructura Principal ---------- */
+
+.scene {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+}
+
+@media (max-width: 980px) {
+    .scene { grid-template-columns: 1fr; }
+}
+
+/* ---------- Panel Izquierdo (Marca y Mapa de México) ---------- */
+
+.panel-brand {
+    position: relative;
+    overflow: hidden;
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--navy-deep);
+    border-right: 1px solid var(--line);
+    isolation: isolate;
+}
+
+/* 1. Mapa Tecnológico de la República Mexicana con Nodos de Red
+      — silueta con relleno degradado + doble contorno para dar
+      profundidad, más nodos, líneas con "flujo de datos" animado
+      y paquetes viajando entre ciudades. */
+.panel-brand::before {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201000%20650%22%20fill%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22landFill%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%233EB046%22%20stop-opacity%3D%220.16%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%233EB046%22%20stop-opacity%3D%220.03%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M%20592.9%20259.7%20L%20582.6%20285.3%20L%20577.9%20306.3%20L%20576.0%20345.3%20L%20573.4%20359.6%20L%20578.0%20375.5%20L%20586.3%20389.7%20L%20591.6%20412.3%20L%20609.3%20434.0%20L%20615.6%20450.6%20L%20626.0%20465.0%20L%20654.3%20472.7%20L%20665.3%20484.9%20L%20688.7%20476.8%20L%20709.0%20473.8%20L%20729.0%20468.6%20L%20745.8%20463.6%20L%20762.7%20451.7%20L%20769.1%20434.7%20L%20771.3%20410.2%20L%20775.9%20401.7%20L%20794.0%20394.0%20L%20822.1%20387.3%20L%20845.8%20388.3%20L%20861.9%20385.8%20L%20868.3%20392.0%20L%20867.4%20406.0%20L%20853.1%20423.4%20L%20846.8%20441.1%20L%20851.7%20446.2%20L%20847.7%20458.8%20L%20841.0%20481.5%20L%20834.2%20474.0%20L%20828.6%20474.5%20L%20823.6%20474.9%20L%20814.0%20492.5%20L%20809.2%20489.1%20L%20806.0%20490.4%20L%20806.2%20494.7%20L%20781.5%20494.4%20L%20756.6%20494.4%20L%20756.6%20510.8%20L%20744.6%20510.9%20L%20754.5%20520.6%20L%20764.3%20527.4%20L%20767.3%20533.7%20L%20771.6%20535.5%20L%20770.9%20545.4%20L%20736.7%20545.5%20L%20723.9%20569.2%20L%20727.7%20574.7%20L%20724.6%20581.5%20L%20723.9%20590.0%20L%20693.7%20558.6%20L%20680.0%20549.2%20L%20658.2%20541.5%20L%20643.3%20543.7%20L%20621.9%20554.6%20L%20608.5%20557.5%20L%20589.6%20549.8%20L%20569.7%20544.3%20L%20544.7%20530.9%20L%20524.8%20526.8%20L%20494.6%20513.3%20L%20472.3%20499.3%20L%20465.5%20491.6%20L%20450.6%20489.8%20L%20423.3%20480.6%20L%20412.2%20467.3%20L%20383.6%20450.7%20L%20370.2%20432.4%20L%20363.9%20418.2%20L%20372.8%20415.3%20L%20370.0%20407.0%20L%20376.1%20399.4%20L%20376.3%20389.4%20L%20367.3%20376.3%20L%20364.9%20364.7%20L%20355.9%20350.0%20L%20332.4%20321.0%20L%20305.6%20298.2%20L%20292.7%20280.0%20L%20269.8%20268.1%20L%20264.9%20261.0%20L%20268.9%20243.0%20L%20255.3%20236.2%20L%20239.6%20222.0%20L%20233.0%20201.7%20L%20218.6%20199.3%20L%20203.1%20184.0%20L%20190.6%20169.8%20L%20189.5%20160.7%20L%20175.1%20138.7%20L%20165.7%20116.4%20L%20166.1%20105.2%20L%20146.8%2093.6%20L%20137.9%2094.9%20L%20122.7%2086.9%20L%20118.4%2098.7%20L%20122.8%20112.7%20L%20125.4%20134.6%20L%20134.6%20146.6%20L%20154.4%20166.7%20L%20158.8%20173.5%20L%20162.8%20175.6%20L%20166.3%20185.6%20L%20171.1%20185.2%20L%20176.4%20204.0%20L%20184.5%20211.4%20L%20190.2%20221.8%20L%20206.9%20236.6%20L%20215.8%20263.7%20L%20223.7%20276.5%20L%20231.1%20290.1%20L%20232.6%20305.5%20L%20245.4%20306.5%20L%20256.1%20319.7%20L%20265.8%20332.7%20L%20265.2%20337.9%20L%20253.9%20348.7%20L%20249.2%20348.5%20L%20242.2%20330.8%20L%20224.7%20314.2%20L%20205.5%20300.1%20L%20191.9%20292.7%20L%20192.8%20271.4%20L%20188.7%20255.6%20L%20176.0%20246.5%20L%20157.7%20233.5%20L%20154.1%20237.3%20L%20147.4%20229.7%20L%20131.0%20222.6%20L%20115.3%20205.7%20L%20117.2%20203.5%20L%20128.2%20205.1%20L%20138.1%20194.3%20L%20139.1%20181.1%20L%20118.6%20160.3%20L%20102.9%20152.2%20L%2093.1%20134.0%20L%2083.2%20114.9%20L%2070.8%2091.6%20L%2060.0%2065.4%20L%2090.3%2063.2%20L%20124.2%2060.0%20L%20121.7%2065.7%20L%20161.9%2079.9%20L%20222.8%20100.4%20L%20275.8%20100.2%20L%20296.9%20100.2%20L%20297.0%2088.2%20L%20343.2%2088.2%20L%20352.9%2098.5%20L%20366.5%20107.7%20L%20382.4%20120.5%20L%20391.2%20135.8%20L%20397.8%20151.8%20L%20411.6%20160.6%20L%20433.8%20169.3%20L%20450.6%20146.3%20L%20472.4%20145.7%20L%20491.2%20157.4%20L%20504.5%20177.3%20L%20513.8%20194.4%20L%20529.5%20211.0%20L%20535.4%20231.4%20L%20542.8%20245.1%20L%20563.6%20254.2%20L%20582.5%20260.6%20L%20592.9%20259.7%20Z%22%20fill%3D%22url%28%23landFill%29%22%20stroke%3D%22rgba%2862%2C176%2C70%2C0.42%29%22%20stroke-width%3D%222.2%22%20stroke-linejoin%3D%22round%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M%20592.9%20259.7%20L%20582.6%20285.3%20L%20577.9%20306.3%20L%20576.0%20345.3%20L%20573.4%20359.6%20L%20578.0%20375.5%20L%20586.3%20389.7%20L%20591.6%20412.3%20L%20609.3%20434.0%20L%20615.6%20450.6%20L%20626.0%20465.0%20L%20654.3%20472.7%20L%20665.3%20484.9%20L%20688.7%20476.8%20L%20709.0%20473.8%20L%20729.0%20468.6%20L%20745.8%20463.6%20L%20762.7%20451.7%20L%20769.1%20434.7%20L%20771.3%20410.2%20L%20775.9%20401.7%20L%20794.0%20394.0%20L%20822.1%20387.3%20L%20845.8%20388.3%20L%20861.9%20385.8%20L%20868.3%20392.0%20L%20867.4%20406.0%20L%20853.1%20423.4%20L%20846.8%20441.1%20L%20851.7%20446.2%20L%20847.7%20458.8%20L%20841.0%20481.5%20L%20834.2%20474.0%20L%20828.6%20474.5%20L%20823.6%20474.9%20L%20814.0%20492.5%20L%20809.2%20489.1%20L%20806.0%20490.4%20L%20806.2%20494.7%20L%20781.5%20494.4%20L%20756.6%20494.4%20L%20756.6%20510.8%20L%20744.6%20510.9%20L%20754.5%20520.6%20L%20764.3%20527.4%20L%20767.3%20533.7%20L%20771.6%20535.5%20L%20770.9%20545.4%20L%20736.7%20545.5%20L%20723.9%20569.2%20L%20727.7%20574.7%20L%20724.6%20581.5%20L%20723.9%20590.0%20L%20693.7%20558.6%20L%20680.0%20549.2%20L%20658.2%20541.5%20L%20643.3%20543.7%20L%20621.9%20554.6%20L%20608.5%20557.5%20L%20589.6%20549.8%20L%20569.7%20544.3%20L%20544.7%20530.9%20L%20524.8%20526.8%20L%20494.6%20513.3%20L%20472.3%20499.3%20L%20465.5%20491.6%20L%20450.6%20489.8%20L%20423.3%20480.6%20L%20412.2%20467.3%20L%20383.6%20450.7%20L%20370.2%20432.4%20L%20363.9%20418.2%20L%20372.8%20415.3%20L%20370.0%20407.0%20L%20376.1%20399.4%20L%20376.3%20389.4%20L%20367.3%20376.3%20L%20364.9%20364.7%20L%20355.9%20350.0%20L%20332.4%20321.0%20L%20305.6%20298.2%20L%20292.7%20280.0%20L%20269.8%20268.1%20L%20264.9%20261.0%20L%20268.9%20243.0%20L%20255.3%20236.2%20L%20239.6%20222.0%20L%20233.0%20201.7%20L%20218.6%20199.3%20L%20203.1%20184.0%20L%20190.6%20169.8%20L%20189.5%20160.7%20L%20175.1%20138.7%20L%20165.7%20116.4%20L%20166.1%20105.2%20L%20146.8%2093.6%20L%20137.9%2094.9%20L%20122.7%2086.9%20L%20118.4%2098.7%20L%20122.8%20112.7%20L%20125.4%20134.6%20L%20134.6%20146.6%20L%20154.4%20166.7%20L%20158.8%20173.5%20L%20162.8%20175.6%20L%20166.3%20185.6%20L%20171.1%20185.2%20L%20176.4%20204.0%20L%20184.5%20211.4%20L%20190.2%20221.8%20L%20206.9%20236.6%20L%20215.8%20263.7%20L%20223.7%20276.5%20L%20231.1%20290.1%20L%20232.6%20305.5%20L%20245.4%20306.5%20L%20256.1%20319.7%20L%20265.8%20332.7%20L%20265.2%20337.9%20L%20253.9%20348.7%20L%20249.2%20348.5%20L%20242.2%20330.8%20L%20224.7%20314.2%20L%20205.5%20300.1%20L%20191.9%20292.7%20L%20192.8%20271.4%20L%20188.7%20255.6%20L%20176.0%20246.5%20L%20157.7%20233.5%20L%20154.1%20237.3%20L%20147.4%20229.7%20L%20131.0%20222.6%20L%20115.3%20205.7%20L%20117.2%20203.5%20L%20128.2%20205.1%20L%20138.1%20194.3%20L%20139.1%20181.1%20L%20118.6%20160.3%20L%20102.9%20152.2%20L%2093.1%20134.0%20L%2083.2%20114.9%20L%2070.8%2091.6%20L%2060.0%2065.4%20L%2090.3%2063.2%20L%20124.2%2060.0%20L%20121.7%2065.7%20L%20161.9%2079.9%20L%20222.8%20100.4%20L%20275.8%20100.2%20L%20296.9%20100.2%20L%20297.0%2088.2%20L%20343.2%2088.2%20L%20352.9%2098.5%20L%20366.5%20107.7%20L%20382.4%20120.5%20L%20391.2%20135.8%20L%20397.8%20151.8%20L%20411.6%20160.6%20L%20433.8%20169.3%20L%20450.6%20146.3%20L%20472.4%20145.7%20L%20491.2%20157.4%20L%20504.5%20177.3%20L%20513.8%20194.4%20L%20529.5%20211.0%20L%20535.4%20231.4%20L%20542.8%20245.1%20L%20563.6%20254.2%20L%20582.5%20260.6%20L%20592.9%20259.7%20Z%22%20fill%3D%22none%22%20stroke%3D%22rgba%2862%2C176%2C70%2C0.12%29%22%20stroke-width%3D%226%22%20stroke-linejoin%3D%22round%22%20stroke-linecap%3D%22round%22%20transform%3D%22translate%284%2C6%29%22%2F%3E%3Cg%20stroke%3D%22rgba%2862%2C176%2C70%2C0.34%29%22%20stroke-width%3D%221.1%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M%2062.4%2066.0%20L%20104.7%2062.8%22%2F%3E%3Cpath%20d%3D%22M%20104.7%2062.8%20L%20224.6%20166.3%22%2F%3E%3Cpath%20d%3D%22M%2062.4%2066.0%20L%2074.1%2084.9%22%2F%3E%3Cpath%20d%3D%22M%20224.6%20166.3%20L%20354.3%20179.1%22%2F%3E%3Cpath%20d%3D%22M%20354.3%20179.1%20L%20425.8%20269.2%22%2F%3E%3Cpath%20d%3D%22M%20425.8%20269.2%20L%20489.9%20272.7%22%2F%3E%3Cpath%20d%3D%22M%20489.9%20272.7%20L%20508.3%20265.0%22%2F%3E%3Cpath%20d%3D%22M%20508.3%20265.0%20L%20562.6%20253.2%22%2F%3E%3Cpath%20d%3D%22M%20508.3%20265.0%20L%20506.3%20413.6%22%2F%3E%3Cpath%20d%3D%22M%20506.3%20413.6%20L%20539.8%20447.3%22%2F%3E%3Cpath%20d%3D%22M%20506.3%20413.6%20L%20471.7%20398.0%22%2F%3E%3Cpath%20d%3D%22M%20506.3%20413.6%20L%20490.4%20367.9%22%2F%3E%3Cpath%20d%3D%22M%20490.4%20367.9%20L%20447.8%20350.0%22%2F%3E%3Cpath%20d%3D%22M%20471.7%20398.0%20L%20455.6%20375.9%22%2F%3E%3Cpath%20d%3D%22M%20471.7%20398.0%20L%20427.4%20411.6%22%2F%3E%3Cpath%20d%3D%22M%20471.7%20398.0%20L%20485.1%20439.5%22%2F%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20427.4%20411.6%22%2F%3E%3Cpath%20d%3D%22M%20427.4%20411.6%20L%20386.2%20387.0%22%2F%3E%3Cpath%20d%3D%22M%20427.4%20411.6%20L%20417.4%20452.9%22%2F%3E%3Cpath%20d%3D%22M%20427.4%20411.6%20L%20345.7%20336.1%22%2F%3E%3Cpath%20d%3D%22M%20345.7%20336.1%20L%20319.5%20290.6%22%2F%3E%3Cpath%20d%3D%22M%20319.5%20290.6%20L%20392.6%20313.4%22%2F%3E%3Cpath%20d%3D%22M%20392.6%20313.4%20L%20354.3%20179.1%22%2F%3E%3Cpath%20d%3D%22M%20345.7%20336.1%20L%20241.7%20310.1%22%2F%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20525.9%20451.4%22%2F%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20537.4%20462.2%22%2F%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20549.8%20427.9%22%2F%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20564.5%20458.8%22%2F%3E%3Cpath%20d%3D%22M%20564.5%20458.8%20L%20599.1%20444.1%22%2F%3E%3Cpath%20d%3D%22M%20599.1%20444.1%20L%20619.8%20454.9%22%2F%3E%3Cpath%20d%3D%22M%20619.8%20454.9%20L%20573.7%20365.7%22%2F%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20604.0%20516.1%22%2F%3E%3Cpath%20d%3D%22M%20604.0%20516.1%20L%20700.6%20525.5%22%2F%3E%3Cpath%20d%3D%22M%20700.6%20525.5%20L%20704.7%20489.4%22%2F%3E%3Cpath%20d%3D%22M%20704.7%20489.4%20L%20769.1%20435.8%22%2F%3E%3Cpath%20d%3D%22M%20769.1%20435.8%20L%20794.2%20402.6%22%2F%3E%3Cpath%20d%3D%22M%20794.2%20402.6%20L%20828.5%20474.4%22%2F%3E%3Cpath%20d%3D%22M%20794.2%20402.6%20L%20867.3%20396.9%22%2F%3E%3Cpath%20d%3D%22M%20619.8%20454.9%20L%20794.2%20402.6%22%2F%3E%3C%2Fg%3E%3Cg%20stroke%3D%22%237CE884%22%20stroke-width%3D%221.4%22%20fill%3D%22none%22%20stroke-dasharray%3D%224%2013%22%20opacity%3D%220.85%22%3E%3Cpath%20d%3D%22M%2062.4%2066.0%20L%20104.7%2062.8%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.00s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20104.7%2062.8%20L%20224.6%20166.3%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.24s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%2062.4%2066.0%20L%2074.1%2084.9%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.48s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20224.6%20166.3%20L%20354.3%20179.1%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.72s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20354.3%20179.1%20L%20425.8%20269.2%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.96s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20425.8%20269.2%20L%20489.9%20272.7%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.20s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20489.9%20272.7%20L%20508.3%20265.0%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.44s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20508.3%20265.0%20L%20562.6%20253.2%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.00s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20508.3%20265.0%20L%20506.3%20413.6%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.24s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20506.3%20413.6%20L%20539.8%20447.3%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.48s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20506.3%20413.6%20L%20471.7%20398.0%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.72s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20506.3%20413.6%20L%20490.4%20367.9%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.96s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20490.4%20367.9%20L%20447.8%20350.0%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.20s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20471.7%20398.0%20L%20455.6%20375.9%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.44s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20471.7%20398.0%20L%20427.4%20411.6%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.00s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20471.7%20398.0%20L%20485.1%20439.5%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.24s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20427.4%20411.6%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.48s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20427.4%20411.6%20L%20386.2%20387.0%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.72s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20427.4%20411.6%20L%20417.4%20452.9%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.96s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20427.4%20411.6%20L%20345.7%20336.1%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.20s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20345.7%20336.1%20L%20319.5%20290.6%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.44s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20319.5%20290.6%20L%20392.6%20313.4%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.00s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20392.6%20313.4%20L%20354.3%20179.1%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.24s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20345.7%20336.1%20L%20241.7%20310.1%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.48s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20525.9%20451.4%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.72s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20537.4%20462.2%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.96s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20549.8%20427.9%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.20s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20564.5%20458.8%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.44s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20564.5%20458.8%20L%20599.1%20444.1%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.00s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20599.1%20444.1%20L%20619.8%20454.9%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.24s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20619.8%20454.9%20L%20573.7%20365.7%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.48s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20539.8%20447.3%20L%20604.0%20516.1%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.72s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20604.0%20516.1%20L%20700.6%20525.5%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.96s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20700.6%20525.5%20L%20704.7%20489.4%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.20s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20704.7%20489.4%20L%20769.1%20435.8%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%223.44s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20769.1%20435.8%20L%20794.2%20402.6%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.00s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20794.2%20402.6%20L%20828.5%20474.4%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.24s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20794.2%20402.6%20L%20867.3%20396.9%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.48s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M%20619.8%20454.9%20L%20794.2%20402.6%22%3E%3Canimate%20attributeName%3D%22stroke-dashoffset%22%20from%3D%220%22%20to%3D%22-68%22%20dur%3D%222.72s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fpath%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23DFFFDF%22%3E%3Ccircle%20r%3D%222.6%22%3E%3CanimateMotion%20dur%3D%224.0s%22%20repeatCount%3D%22indefinite%22%20path%3D%22M%2062.4%2066.0%20L%20104.7%2062.8%20L%20224.6%20166.3%20L%20354.3%20179.1%20L%20425.8%20269.2%20L%20489.9%20272.7%20L%20508.3%20265.0%20L%20506.3%20413.6%20L%20539.8%20447.3%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220%3B1%3B1%3B0%22%20keyTimes%3D%220%3B0.04%3B0.92%3B1%22%20dur%3D%224.0s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20r%3D%222.6%22%3E%3CanimateMotion%20dur%3D%224.6s%22%20repeatCount%3D%22indefinite%22%20path%3D%22M%20539.8%20447.3%20L%20564.5%20458.8%20L%20599.1%20444.1%20L%20619.8%20454.9%20L%20794.2%20402.6%20L%20867.3%20396.9%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220%3B1%3B1%3B0%22%20keyTimes%3D%220%3B0.04%3B0.92%3B1%22%20dur%3D%224.6s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20r%3D%222.6%22%3E%3CanimateMotion%20dur%3D%225.2s%22%20repeatCount%3D%22indefinite%22%20path%3D%22M%20539.8%20447.3%20L%20427.4%20411.6%20L%20345.7%20336.1%20L%20241.7%20310.1%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220%3B1%3B1%3B0%22%20keyTimes%3D%220%3B0.04%3B0.92%3B1%22%20dur%3D%225.2s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20r%3D%222.6%22%3E%3CanimateMotion%20dur%3D%225.8s%22%20repeatCount%3D%22indefinite%22%20path%3D%22M%20539.8%20447.3%20L%20604.0%20516.1%20L%20700.6%20525.5%20L%20704.7%20489.4%20L%20769.1%20435.8%20L%20794.2%20402.6%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220%3B1%3B1%3B0%22%20keyTimes%3D%220%3B0.04%3B0.92%3B1%22%20dur%3D%225.8s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20r%3D%222.6%22%3E%3CanimateMotion%20dur%3D%226.4s%22%20repeatCount%3D%22indefinite%22%20path%3D%22M%20539.8%20447.3%20L%20506.3%20413.6%20L%20471.7%20398.0%20L%20455.6%20375.9%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220%3B1%3B1%3B0%22%20keyTimes%3D%220%3B0.04%3B0.92%3B1%22%20dur%3D%226.4s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3C%2Fg%3E%3Cg%20fill%3D%22%233EB046%22%3E%3Ccircle%20cx%3D%22867.3%22%20cy%3D%22396.9%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22564.5%22%20cy%3D%22458.8%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22506.3%22%20cy%3D%22413.6%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22521.4%22%20cy%3D%22522.5%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22354.3%22%20cy%3D%22179.1%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22345.7%22%20cy%3D%22336.1%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22224.6%22%20cy%3D%22166.3%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22241.7%22%20cy%3D%22310.1%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22604.0%22%20cy%3D%22516.1%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22700.6%22%20cy%3D%22525.5%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22471.7%22%20cy%3D%22398.0%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22525.9%22%20cy%3D%22451.4%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22573.7%22%20cy%3D%22365.7%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22489.9%22%20cy%3D%22272.7%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22455.6%22%20cy%3D%22375.9%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22490.4%22%20cy%3D%22367.9%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22319.5%22%20cy%3D%22290.6%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22392.6%22%20cy%3D%22313.4%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22704.7%22%20cy%3D%22489.4%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22769.1%22%20cy%3D%22435.8%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22537.4%22%20cy%3D%22462.2%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22485.1%22%20cy%3D%22439.5%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22549.8%22%20cy%3D%22427.9%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22417.4%22%20cy%3D%22452.9%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22447.8%22%20cy%3D%22350.0%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%2274.1%22%20cy%3D%2284.9%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22104.7%22%20cy%3D%2262.8%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22562.6%22%20cy%3D%22253.2%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22425.8%22%20cy%3D%22269.2%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22599.1%22%20cy%3D%22444.1%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22386.2%22%20cy%3D%22387.0%22%20r%3D%223.2%22%2F%3E%3Ccircle%20cx%3D%22828.5%22%20cy%3D%22474.4%22%20r%3D%223.2%22%2F%3E%3C%2Fg%3E%3Cg%3E%3Ccircle%20cx%3D%22539.8%22%20cy%3D%22447.3%22%20r%3D%227%22%20fill%3D%22%233EB046%22%2F%3E%3Ccircle%20cx%3D%22539.8%22%20cy%3D%22447.3%22%20r%3D%227%22%20fill%3D%22none%22%20stroke%3D%22%237CE884%22%20stroke-width%3D%221.4%22%3E%3Canimate%20attributeName%3D%22r%22%20values%3D%227%3B23.8%3B7%22%20dur%3D%222.8s%22%20begin%3D%220s%22%20repeatCount%3D%22indefinite%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220.85%3B0%3B0.85%22%20dur%3D%222.8s%22%20begin%3D%220s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%22427.4%22%20cy%3D%22411.6%22%20r%3D%226%22%20fill%3D%22%233EB046%22%2F%3E%3Ccircle%20cx%3D%22427.4%22%20cy%3D%22411.6%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%237CE884%22%20stroke-width%3D%221.4%22%3E%3Canimate%20attributeName%3D%22r%22%20values%3D%226%3B20.4%3B6%22%20dur%3D%223.2s%22%20begin%3D%220.4s%22%20repeatCount%3D%22indefinite%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220.85%3B0%3B0.85%22%20dur%3D%223.2s%22%20begin%3D%220.4s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%22508.3%22%20cy%3D%22265.0%22%20r%3D%226%22%20fill%3D%22%233EB046%22%2F%3E%3Ccircle%20cx%3D%22508.3%22%20cy%3D%22265.0%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%237CE884%22%20stroke-width%3D%221.4%22%3E%3Canimate%20attributeName%3D%22r%22%20values%3D%226%3B20.4%3B6%22%20dur%3D%223.0s%22%20begin%3D%220.9s%22%20repeatCount%3D%22indefinite%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220.85%3B0%3B0.85%22%20dur%3D%223.0s%22%20begin%3D%220.9s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2262.4%22%20cy%3D%2266.0%22%20r%3D%225%22%20fill%3D%22%233EB046%22%2F%3E%3Ccircle%20cx%3D%2262.4%22%20cy%3D%2266.0%22%20r%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%237CE884%22%20stroke-width%3D%221.4%22%3E%3Canimate%20attributeName%3D%22r%22%20values%3D%225%3B17.0%3B5%22%20dur%3D%223.1s%22%20begin%3D%221.6s%22%20repeatCount%3D%22indefinite%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220.85%3B0%3B0.85%22%20dur%3D%223.1s%22%20begin%3D%221.6s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%22619.8%22%20cy%3D%22454.9%22%20r%3D%225.5%22%20fill%3D%22%233EB046%22%2F%3E%3Ccircle%20cx%3D%22619.8%22%20cy%3D%22454.9%22%20r%3D%225.5%22%20fill%3D%22none%22%20stroke%3D%22%237CE884%22%20stroke-width%3D%221.4%22%3E%3Canimate%20attributeName%3D%22r%22%20values%3D%225.5%3B18.7%3B5.5%22%20dur%3D%223.4s%22%20begin%3D%220.6s%22%20repeatCount%3D%22indefinite%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220.85%3B0%3B0.85%22%20dur%3D%223.4s%22%20begin%3D%220.6s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%22794.2%22%20cy%3D%22402.6%22%20r%3D%225.5%22%20fill%3D%22%233EB046%22%2F%3E%3Ccircle%20cx%3D%22794.2%22%20cy%3D%22402.6%22%20r%3D%225.5%22%20fill%3D%22none%22%20stroke%3D%22%237CE884%22%20stroke-width%3D%221.4%22%3E%3Canimate%20attributeName%3D%22r%22%20values%3D%225.5%3B18.7%3B5.5%22%20dur%3D%222.6s%22%20begin%3D%221.2s%22%20repeatCount%3D%22indefinite%22%2F%3E%3Canimate%20attributeName%3D%22opacity%22%20values%3D%220.85%3B0%3B0.85%22%20dur%3D%222.6s%22%20begin%3D%221.2s%22%20repeatCount%3D%22indefinite%22%2F%3E%3C%2Fcircle%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    background-position: 58% 50%;
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.85;
+    z-index: 0;
+    filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 40px rgba(62, 176, 70, 0.12));
+    animation: mapGlow 6s ease-in-out infinite alternate;
+    transform-origin: 55% 55%;
+}
+
+/* Capa extra de profundidad: halo radial detrás del mapa que "respira"
+   junto con la red, dando sensación de volumen en vez de plano. */
+.panel-brand::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 55% at 55% 55%, rgba(62, 176, 70, 0.14) 0%, transparent 70%),
+        radial-gradient(circle at 50% 50%, rgba(62, 176, 70, 0.06) 0%, transparent 75%),
+        linear-gradient(180deg, var(--navy-deep) 0%, transparent 28%, transparent 72%, var(--navy-deep) 100%);
+    z-index: 1;
+    pointer-events: none;
+    animation: haloPulse 6s ease-in-out infinite alternate;
+}
+
+/* Ocultar la marca de agua antigua */
+.brand-watermark { display: none; }
+
+/* Contenido sobre el mapa */
+.brand-lockup, 
+.brand-copy, 
+.brand-rule {
+    position: relative;
+    z-index: 2;
+}
+
+/* Logotipo flotante transparente */
+.brand-lockup {
+    position: absolute;
+    top: 34px;
+    right: 34px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: 390px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 18px;
+    background: rgba(5, 7, 26, .58);
+    backdrop-filter: blur(10px);
+}
+
+.brand-lockup img {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+    transition: transform 0.3s ease;
+}
+
+.brand-lockup img:hover {
+    transform: scale(1.04);
+}
+
+.brand-lockup .wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--ink);
+}
+
+.brand-lockup .wordmark span {
+    display: block;
+    margin-top: 6px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+}
+
+/* El texto vive sobre un mapa ahora mas denso (mas nodos/lineas),
+   asi que le damos un "scrim" propio: un halo oscuro detras del
+   bloque para que siga siendo legible sin taparlo con un fondo solido. */
+.brand-copy {
+    position: relative;
+    margin-top: auto;
+    max-width: 430px;
+    padding: 0;
+}
+
+.brand-copy::before {
+    content: none;
+}
+
+.brand-copy h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 0 0 20px;
+    color: var(--ink);
+    text-shadow: 0 4px 16px rgba(0,0,0,0.75);
+}
+
+.brand-copy p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16.5px;
+    line-height: 1.6;
+    max-width: 420px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.brand-rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.brand-rule i {
+    width: 8px;
+    height: 8px;
+    background: var(--green-bright);
+    border-radius: 2px;
+    transform: rotate(45deg);
+    flex: none;
+    box-shadow: 0 0 10px rgba(62, 176, 70, 0.6);
+}
+
+.brand-rule span {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* Animación de "respiración" del mapa: ahora con leve rotación y
+   desplazamiento vertical además de escala/opacidad, para que la
+   red se sienta viva y no un fondo estático. */
+@keyframes mapGlow {
+    0% {
+        opacity: 0.7;
+        transform: scale(0.985) translateY(2px) rotate(-0.3deg);
+    }
+    50% {
+        opacity: 0.95;
+        transform: scale(1.015) translateY(-4px) rotate(0.2deg);
+    }
+    100% {
+        opacity: 0.8;
+        transform: scale(1.03) translateY(0) rotate(0.4deg);
+    }
+}
+
+@keyframes haloPulse {
+    0% { opacity: 0.75; }
+    50% { opacity: 1; }
+    100% { opacity: 0.85; }
+}
+
+/* ---------- Panel Derecho (Formulario Glassmorphism) ---------- */
+
+.panel-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: var(--navy-deep);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255, 255, 255, 0.025);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 24px;
+    padding: 48px 40px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.login-card .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    margin: 0 0 20px;
+}
+
+/* Logo con resplandor entre el eyebrow ("Acceso administrativo") y el
+   titulo ("Iniciar sesion"). El halo "respira" suavemente. */
+.login-card .login-logo-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0 24px;
+}
+
+.login-card .login-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter:
+        drop-shadow(0 0 10px rgba(62, 176, 70, 0.65))
+        drop-shadow(0 0 26px rgba(62, 176, 70, 0.4))
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    animation: logoGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+    0%, 100% {
+        filter:
+            drop-shadow(0 0 8px rgba(62, 176, 70, 0.55))
+            drop-shadow(0 0 20px rgba(62, 176, 70, 0.3))
+            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    }
+    50% {
+        filter:
+            drop-shadow(0 0 14px rgba(62, 176, 70, 0.85))
+            drop-shadow(0 0 36px rgba(62, 176, 70, 0.55))
+            drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    }
+}
+
+.login-card .eyebrow i {
+    width: 6px; 
+    height: 6px;
+    background: var(--green-bright);
+    border-radius: 1px;
+    transform: rotate(45deg);
+    flex: none;
+}
+
+.login-card h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 26px;
+    margin: 0 0 10px;
+    color: var(--ink);
+}
+
+.login-card > p.sub {
+    margin: 0 0 32px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Mensaje de Error */
+.msg-error {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 12px;
+    color: #FCA5A5;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.msg-error svg { flex: none; margin-top: 2px; }
+
+/* Entradas de texto / Inputs */
+.form-row { margin-bottom: 20px; }
+
+.form-row label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.login-card input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    color: var(--ink);
+    padding: 14px 16px;
+    font: inherit;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.login-card input::placeholder { color: var(--muted-2); }
+
+.login-card input:focus {
+    outline: none;
+    background: rgba(0, 0, 0, 0.45);
+    border-color: var(--green-bright);
+    box-shadow: 0 0 0 4px rgba(62, 176, 70, 0.15);
+}
+
+/* Corrección de fondo blanco en autocompletado */
+.login-card input:-webkit-autofill,
+.login-card input:-webkit-autofill:hover, 
+.login-card input:-webkit-autofill:focus, 
+.login-card input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #090B23 inset !important;
+    -webkit-text-fill-color: var(--ink) !important;
+    transition: background-color 5000s ease-in-out 0s;
+    border: 1px solid var(--green-bright) !important;
+}
+
+/* Botón Principal */
+.login-card button {
+    width: 100%;
+    border: none;
+    background: linear-gradient(135deg, var(--green-bright), var(--green));
+    color: #FFFFFF;
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 12px;
+    box-shadow: 0 8px 20px -6px rgba(62, 176, 70, 0.4);
+    transition: all 0.2s ease;
+}
+
+.login-card button:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 12px 24px -6px rgba(62, 176, 70, 0.6);
+    filter: brightness(1.1);
+}
+
+.login-card button:active {
+    transform: translateY(0);
+}
+
+.login-card button:focus-visible { 
+    outline: 2px solid var(--ink); 
+    outline-offset: 4px; 
+}
+
+.login-card .foot {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--muted-2);
+}
+
+/* ---------- Responsivo (Celulares y Tablets) ---------- */
+
+@media (max-width: 980px) {
+    .scene { min-height: 100svh; }
+    .panel-brand { 
+        min-height: 360px;
+        padding: 24px 24px 30px;
+        border-right: none; 
+        border-bottom: 1px solid var(--line); 
+    }
+    .panel-brand::before {
+        inset: 0;
+        opacity: 0.6;
+    }
+    .brand-lockup {
+        position: relative;
+        top: auto;
+        right: auto;
+        align-self: flex-start;
+    }
+    .brand-lockup img { width: 58px; height: 58px; }
+    .brand-lockup .wordmark { font-size: 24px; }
+    .brand-copy { margin-top: 96px; }
+    .brand-copy h1 { font-size: 30px; }
+    .panel-form { padding: 40px 20px; }
+}
+
+@media (max-width: 600px) {
+    .panel-brand { min-height: 315px; padding: 20px; }
+    .panel-brand::before { background-position: 54% 54%; background-size: 145%; }
+    .brand-lockup { width: 100%; padding: 10px 12px; border-radius: 10px; }
+    .brand-lockup img { width: 46px; height: 46px; }
+    .brand-lockup .wordmark { font-size: 22px; }
+    .brand-lockup .wordmark span { font-size: 9px; letter-spacing: .12em; }
+    .brand-copy { display: none; }
+    .brand-rule { margin-top: auto; }
+    .panel-form { padding: 24px 14px 36px; }
+    .login-card { width: 100%; padding: 30px 22px; border-radius: 12px; }
+}
+
+/* Respeta preferencia de reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+    .panel-brand::before,
+    .panel-brand::after,
+    .login-card .login-logo {
+        animation: none !important;
+    }
+}
+
+/* Mejor lectura en pantallas con brillo bajo o usuarios con vista cansada. */
+body.login-page {
+    --line: rgba(255, 255, 255, 0.14);
+    --line-strong: rgba(255, 255, 255, 0.26);
+    --muted: #C5CFD6;
+    --muted-2: #9BA7AF;
+}
+
+.brand-lockup,
+.login-card {
+    border-color: var(--line-strong);
+}
+
+.brand-copy p,
+.brand-rule span,
+.login-card > p.sub,
+.form-row label,
+.login-card .foot {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.login-card input {
+    border-color: var(--line-strong);
+    font-weight: 500;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+.login-card input::placeholder {
+    color: var(--muted-2);
+}
+
+.msg-error {
+    border-color: rgba(239, 68, 68, 0.42);
+    color: #FFD1D1;
+    font-weight: 600;
+}

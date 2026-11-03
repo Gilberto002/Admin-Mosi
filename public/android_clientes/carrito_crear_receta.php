@@ -1,0 +1,5 @@
+<?php
+declare(strict_types=1);
+
+define('APP_ANDROID_SEGMENTO_REQUERIDO', 'cliente');
+require dirname(__DIR__) . '/api/android_carrito_crear_receta.php';
