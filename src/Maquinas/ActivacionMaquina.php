@@ -40,7 +40,7 @@ final class ActivacionMaquina
                     COALESCE(NULLIF(LTRIM(RTRIM(c.st_Nombre)), ''),
                              CONCAT('Cliente ', CONVERT(NVARCHAR(100), s.id_cliente))) AS nombre
                 FROM fernandoruiz.cat_SucursalClinica s
-                LEFT JOIN fernandoruiz.cat_Clientes c ON c.id_Cliente = s.id_cliente
+                LEFT JOIN dbo.cat_Clientes c ON c.id_Cliente = s.id_cliente
                 WHERE s.i_Activo = 1
                   AND s.id_cliente IS NOT NULL
                   AND (:texto_vacio = '' OR c.st_Nombre LIKE :texto_nombre
