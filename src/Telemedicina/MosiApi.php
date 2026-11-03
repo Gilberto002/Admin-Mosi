@@ -221,9 +221,14 @@ SQL);
         $clave = trim((string) ($configuracion['videoloop_clave'] ?? ''));
         $email = self::texto($configuracion['videoloop_email'] ?? null, 180);
         $impresoraIp = self::texto($configuracion['impresora_ip'] ?? null, 100);
+        $clienteId = self::texto($configuracion['id_cliente'] ?? null, 100);
+        $clienteNombre = self::texto($configuracion['cliente_nombre'] ?? null, 200);
         $videoloopPort = (int) ($configuracion['videoloop_port'] ?? 8080);
         $impresoraPuerto = (int) ($configuracion['impresora_puerto'] ?? 631);
         if ($host === null || $clave === '') throw new RuntimeException('La IP y la clave de VideoLoop son obligatorias.');
+        if ($clienteId === null || $clienteNombre === null) {
+            throw new RuntimeException('El cliente y la sucursal son obligatorios.');
+        }
         if ($videoloopPort < 1 || $videoloopPort > 65535 || $impresoraPuerto < 1 || $impresoraPuerto > 65535) {
             throw new RuntimeException('Puerto de VideoLoop o impresora invalido.');
         }
@@ -242,11 +247,16 @@ SQL);
             if (!$row) throw new RuntimeException('La MOSI no esta preregistrada o esta dada de baja.');
 
             $sucursal = $pdo->prepare(
-                'SELECT st_Nombre FROM fernandoruiz.cat_SucursalClinica WHERE id_SucursalClinica=:id AND i_Activo=1'
+                'SELECT st_Nombre,id_cliente FROM fernandoruiz.cat_SucursalClinica WHERE id_SucursalClinica=:id AND i_Activo=1'
             );
             $sucursal->execute(['id' => $idSucursal]);
-            $nombreSucursal = trim((string) ($sucursal->fetchColumn() ?: ''));
+            $filaSucursal = $sucursal->fetch(PDO::FETCH_ASSOC);
+            $nombreSucursal = trim((string) ($filaSucursal['st_Nombre'] ?? ''));
             if ($nombreSucursal === '') throw new RuntimeException('La sucursal seleccionada no esta activa.');
+            $clienteSucursal = trim((string) ($filaSucursal['id_cliente'] ?? ''));
+            if ($clienteSucursal !== '' && $clienteSucursal !== $clienteId) {
+                throw new RuntimeException('La sucursal seleccionada no pertenece al cliente indicado.');
+            }
 
             $idMosi = (int) $row['id_mosi'];
             $token = 'MLMOSI_' . self::base64Url(random_bytes(32));
@@ -266,6 +276,7 @@ SQL);
             ]);
             $pdo->prepare(
                 "UPDATE vendingm.telemedicina_mosi SET
+                    id_cliente_externo=:cliente_id, cliente_nombre=:cliente_nombre,
                     id_sucursal_clinica=:id_sucursal, id_sucursal_externa=:sucursal_texto,
                     sucursal_nombre=:sucursal_nombre, videoloop_host=:vl_host,
                     videoloop_port=:vl_port, videoloop_email=:vl_email,
@@ -275,6 +286,8 @@ SQL);
                     fecha_actualizacion=SYSDATETIME()
                  WHERE id_mosi=:id"
             )->execute([
+                'cliente_id' => $clienteId,
+                'cliente_nombre' => $clienteNombre,
                 'id_sucursal' => $idSucursal,
                 'sucursal_texto' => (string) $idSucursal,
                 'sucursal_nombre' => $nombreSucursal,
@@ -299,6 +312,7 @@ SQL);
             'id_mosi' => $idMosi,
             'numero_serie' => (string) $row['numero_serie'],
             'nombre' => (string) $row['nombre'],
+            'cliente' => ['id' => $clienteId, 'nombre' => $clienteNombre],
             'sucursal' => ['id' => $idSucursal, 'nombre' => $nombreSucursal],
         ];
     }
