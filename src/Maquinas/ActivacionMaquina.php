@@ -31,8 +31,36 @@ final class ActivacionMaquina
         ");
     }
 
+    /** @return list<array{id_cliente:string,nombre:string}> */
+    public static function buscarClientes(PDO $pdo, string $texto, int $limite = 50): array
+    {
+        $limite = max(1, min(100, $limite));
+        $sql = "SELECT TOP {$limite}
+                    CONVERT(NVARCHAR(100), s.id_cliente) AS id_cliente,
+                    COALESCE(NULLIF(LTRIM(RTRIM(c.st_Nombre)), ''),
+                             CONCAT('Cliente ', CONVERT(NVARCHAR(100), s.id_cliente))) AS nombre
+                FROM fernandoruiz.cat_SucursalClinica s
+                LEFT JOIN fernandoruiz.cat_Clientes c ON c.id_Cliente = s.id_cliente
+                WHERE s.i_Activo = 1
+                  AND s.id_cliente IS NOT NULL
+                  AND (:texto_vacio = '' OR c.st_Nombre LIKE :texto_nombre
+                       OR CONVERT(NVARCHAR(100), s.id_cliente) LIKE :texto_id)
+                GROUP BY s.id_cliente, c.st_Nombre
+                ORDER BY nombre";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'texto_vacio' => $texto,
+            'texto_nombre' => '%' . $texto . '%',
+            'texto_id' => '%' . $texto . '%',
+        ]);
+        return array_map(static fn(array $fila): array => [
+            'id_cliente' => trim((string) $fila['id_cliente']),
+            'nombre' => trim((string) $fila['nombre']),
+        ], $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     /** @return list<array{id_sucursal_clinica:int,nombre:string}> */
-    public static function buscarSucursales(PDO $pdo, string $texto, int $limite = 20): array
+    public static function buscarSucursales(PDO $pdo, string $texto, int $limite = 20, ?string $idCliente = null): array
     {
         $limite = max(1, min(50, $limite));
         $sql = "SELECT TOP {$limite}
@@ -40,12 +68,15 @@ final class ActivacionMaquina
                     st_Nombre AS nombre
                 FROM fernandoruiz.cat_SucursalClinica
                 WHERE i_Activo = 1
+                  AND (:cliente_vacio = '' OR CONVERT(NVARCHAR(100), id_cliente) = :cliente)
                   AND (:texto_vacio = '' OR st_Nombre LIKE :texto)
                 ORDER BY
                     CASE WHEN st_Nombre LIKE :inicio THEN 0 ELSE 1 END,
                     st_Nombre";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
+            'cliente_vacio' => trim((string) $idCliente),
+            'cliente' => trim((string) $idCliente),
             'texto_vacio' => $texto,
             'texto' => '%' . $texto . '%',
             'inicio' => $texto . '%',
