@@ -54,7 +54,6 @@ $linkResurtir = static function () use ($paginaActual, $alertaResurtir): void {
 <nav class="nav-lateral">
     <?php if ($usuarioClinico): ?>
         <a href="mosi_operacion.php"<?= $activo('mosi_operacion.php') ?>><i data-lucide="chart-no-axes-combined" class="nav-icon"></i>Operación MOSI</a>
-        <a href="personal_clinico.php"<?= $activo('personal_clinico.php') ?>><i data-lucide="users-round" class="nav-icon"></i>Mi tablero clinico</a>
         <a href="telemedicina.php"<?= $activo('telemedicina.php') ?>><i data-lucide="stethoscope" class="nav-icon"></i>Mis MOSI</a>
         <a href="logout.php"><i data-lucide="log-out" class="nav-icon"></i>Salir</a>
     <?php elseif ($usuarioSoloMaquinasDashboard): ?>
@@ -101,7 +100,7 @@ $linkResurtir = static function () use ($paginaActual, $alertaResurtir): void {
             </div>
         </details>
 
-        <details class="nav-grupo"<?= $grupoAbierto(['mosi_operacion.php', 'mosi_colaboradores.php', 'telemedicina.php', 'personal_clinico.php']) ?>>
+        <details class="nav-grupo"<?= $grupoAbierto(['mosi_operacion.php', 'mosi_colaboradores.php', 'telemedicina.php']) ?>>
             <summary>
                 <i data-lucide="heart-pulse" class="nav-icon"></i>
                 <span>MOSI</span>
@@ -111,7 +110,6 @@ $linkResurtir = static function () use ($paginaActual, $alertaResurtir): void {
                 <a href="mosi_operacion.php"<?= $activo('mosi_operacion.php') ?>><i data-lucide="chart-no-axes-combined" class="nav-icon"></i>Operación y llamadas</a>
                 <a href="mosi_colaboradores.php"<?= $activo('mosi_colaboradores.php') ?>><i data-lucide="user-cog" class="nav-icon"></i>Colaboradores SYBI</a>
                 <a href="telemedicina.php"<?= $activo('telemedicina.php') ?>><i data-lucide="monitor-cog" class="nav-icon"></i>Módulos MOSI</a>
-                <a href="personal_clinico.php"<?= $activo('personal_clinico.php') ?>><i data-lucide="calendar-cog" class="nav-icon"></i>Personal y horarios</a>
             </div>
         </details>
 

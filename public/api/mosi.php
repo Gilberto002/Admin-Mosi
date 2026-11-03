@@ -104,7 +104,6 @@ try {
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $porMosi = [];
-    $personalPorMosi = [];
     $ids = array_map('intval', array_column($data, 'id_mosi'));
     if ($ids) {
         $marks = implode(',', $ids);
@@ -113,10 +112,7 @@ try {
         $linkScope = $linkMachineCondition ? " AND {$linkMachineCondition}" : '';
         $stmtLinks = $pdo->prepare(
             "SELECT mm.id_mosi, m.id_maquina, m.numero_serie, m.nombre_maquina, m.nombre_ubicacion,
-                    m.rol_maquina, m.ultima_conexion,
-                    CASE WHEN m.ultima_conexion IS NULL THEN 'nunca_conectada'
-                         WHEN m.ultima_conexion >= DATEADD(minute, -10, SYSDATETIME()) THEN 'online'
-                         ELSE 'offline' END AS estado_conexion
+                    m.rol_maquina
              FROM vendingm.telemedicina_mosi_maquinas mm
              INNER JOIN vendingm.maquinas m ON m.id_maquina = mm.id_maquina
              WHERE mm.id_mosi IN ({$marks}) {$linkScope}
@@ -126,21 +122,9 @@ try {
         foreach ($stmtLinks->fetchAll(\PDO::FETCH_ASSOC) as $link) {
             $porMosi[(int) $link['id_mosi']][] = $link;
         }
-        $stmtPersonal = $pdo->query(
-            "SELECT pm.id_mosi, p.id_personal, p.nombre, p.apellido, p.tipo_profesional,
-                    p.especialidad, p.estado_operativo
-             FROM vendingm.telemedicina_personal_mosi pm
-             INNER JOIN vendingm.telemedicina_personal p ON p.id_personal = pm.id_personal
-             WHERE p.activo = 1 AND pm.id_mosi IN ({$marks})
-             ORDER BY p.tipo_profesional, p.nombre, p.apellido"
-        );
-        foreach ($stmtPersonal->fetchAll(\PDO::FETCH_ASSOC) as $persona) {
-            $personalPorMosi[(int) $persona['id_mosi']][] = $persona;
-        }
     }
     foreach ($data as &$item) {
         $item['maquinas'] = $porMosi[(int) $item['id_mosi']] ?? [];
-        $item['personal'] = $personalPorMosi[(int) $item['id_mosi']] ?? [];
         $sensores = json_decode((string) ($item['sensores_json'] ?? ''), true);
         $item['sensores'] = is_array($sensores) ? $sensores : [];
         unset($item['sensores_json']);
