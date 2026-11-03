@@ -173,7 +173,7 @@ $esAdmin = Auth::isAdmin() && !Auth::isUsuarioMaquinasDashboard();
 <div class="overlay" id="modal-detalle"><div class="modal">
     <div class="modal-head"><h2>Ficha técnica MOSI</h2><button type="button" class="cerrar" data-cerrar>&times;</button></div>
     <div class="modal-body" id="detalle"></div>
-    <div class="modal-foot"><?php if ($esAdmin): ?><button class="btn" id="activar-mosi"><i data-lucide="key-round"></i>Generar activaciÃ³n</button><button class="btn" id="editar-mosi"><i data-lucide="pencil"></i>Editar</button><?php endif; ?><button class="btn primario" data-cerrar>Cerrar</button></div>
+    <div class="modal-foot"><?php if ($esAdmin): ?><button class="btn" id="activar-mosi"><i data-lucide="key-round"></i>Generar activación</button><button class="btn" id="editar-mosi"><i data-lucide="pencil"></i>Editar</button><?php endif; ?><button class="btn primario" data-cerrar>Cerrar</button></div>
 </div></div>
 
 <script src="assets/js/comun.js?v=20261013-1"></script>
@@ -270,13 +270,13 @@ $('nuevo-grupo')?.addEventListener('click',()=>{$('form-grupo').reset();$('g-men
 $('editar-mosi')?.addEventListener('click',()=>{ $('modal-detalle').classList.remove('abierto'); abrirFormulario(seleccionada); });
 $('activar-mosi')?.addEventListener('click',async()=>{
     if(!seleccionada)return;
-    if(!await mlConfirm(`Se revocarÃ¡ cualquier cÃ³digo de activaciÃ³n pendiente para ${seleccionada.numero_serie}. El token actual del equipo solo se reemplaza cuando la app use el nuevo cÃ³digo.`,`Activar ${seleccionada.nombre}`,'Generar cÃ³digo'))return;
+    if(!await mlConfirm(`Se revocará cualquier código de activación pendiente para ${seleccionada.numero_serie}. El token actual del equipo solo se reemplaza cuando la app use el nuevo código.`,`Activar ${seleccionada.nombre}`,'Generar código'))return;
     try{
         const r=await fetch('api/mosi_token_activacion.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_mosi:seleccionada.id_mosi,horas:24})});
-        const j=await r.json();if(!j.ok)throw new Error(j.error||'No se pudo generar el cÃ³digo.');
+        const j=await r.json();if(!j.ok)throw new Error(j.error||'No se pudo generar el código.');
         const Swal=await cargarSweetAlert();
-        await Swal.fire({icon:'success',title:'CÃ³digo de activaciÃ³n',html:`<p>CaptÃºralo en la app MOSI. Vence en 24 horas y funciona una sola vez.</p><input id="codigo-mosi-generado" class="swal2-input" readonly value="${escapeHtml(j.data.codigo_activacion)}"><small>Serie: ${escapeHtml(j.data.numero_serie)}<br>Expira: ${escapeHtml(j.data.expira_en)}</small>`,showCancelButton:true,confirmButtonText:'Copiar cÃ³digo',cancelButtonText:'Cerrar',confirmButtonColor:'#159485',preConfirm:async()=>{const c=document.getElementById('codigo-mosi-generado').value;await navigator.clipboard.writeText(c);return c;}});
-    }catch(err){mlAlert(err.message||'No se pudo generar el cÃ³digo.');}
+        await Swal.fire({icon:'success',title:'Código de activación',html:`<p>Captúralo en la app MOSI. Vence en 24 horas y funciona una sola vez.</p><input id="codigo-mosi-generado" class="swal2-input" readonly value="${escapeHtml(j.data.codigo_activacion)}"><small>Serie: ${escapeHtml(j.data.numero_serie)}<br>Expira: ${escapeHtml(j.data.expira_en)}</small>`,showCancelButton:true,confirmButtonText:'Copiar código',cancelButtonText:'Cerrar',confirmButtonColor:'#159485',preConfirm:async()=>{const c=document.getElementById('codigo-mosi-generado').value;await navigator.clipboard.writeText(c);return c;}});
+    }catch(err){mlAlert(err.message||'No se pudo generar el código.');}
 });
 $('buscar-maquina').addEventListener('input',e=>renderMaquinas(e.target.value));
 $('form-mosi').addEventListener('submit',async e=>{e.preventDefault();$('m-mensaje').textContent='Guardando…'; const body={id_mosi:valor('m-id')||null,nombre:valor('m-nombre'),numero_serie:valor('m-serie'),id_grupo:valor('m-grupo')||null,estatus:valor('m-estatus'),fabricante:valor('m-fabricante'),modelo:valor('m-modelo'),ubicacion:valor('m-ubicacion'),consultorio:valor('m-consultorio'),ip_local:valor('m-ip'),mac_address:valor('m-mac'),tipo_conexion:valor('m-conexion'),version_software:valor('m-version'),notas:valor('m-notas'),maquinas:[...document.querySelectorAll('#maquinas-box input:checked')].map(x=>Number(x.value))}; try{const r=await fetch('api/mosi_guardar.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!j.ok)throw new Error(j.error);$('modal-mosi').classList.remove('abierto');await cargar();}catch(err){$('m-mensaje').textContent=err.message||'No se pudo guardar.';}});

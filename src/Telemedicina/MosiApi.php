@@ -129,9 +129,13 @@ SQL);
                 "INSERT INTO vendingm.telemedicina_mosi_tokens_activacion
                  (id_mosi,codigo_hash,fecha_expiracion,creado_por)
                  OUTPUT INSERTED.id_activacion, CONVERT(NVARCHAR(33),INSERTED.fecha_expiracion,126)
-                 VALUES (:id,:hash,DATEADD(hour,:horas,SYSDATETIME()),:creado_por)"
+                 VALUES (:id,:hash,DATEADD(hour,CAST(:horas AS INT),SYSDATETIME()),:creado_por)"
             );
-            $insert->execute(['id' => $idMosi, 'hash' => password_hash($secreto, PASSWORD_DEFAULT), 'horas' => $horas, 'creado_por' => $creadoPor]);
+            $insert->bindValue('id', $idMosi, PDO::PARAM_INT);
+            $insert->bindValue('hash', password_hash($secreto, PASSWORD_DEFAULT));
+            $insert->bindValue('horas', $horas, PDO::PARAM_INT);
+            $insert->bindValue('creado_por', $creadoPor, PDO::PARAM_INT);
+            $insert->execute();
             $row = $insert->fetch(PDO::FETCH_NUM);
             $pdo->commit();
         } catch (\Throwable $e) {
