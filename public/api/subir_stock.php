@@ -77,6 +77,13 @@ try {
             'sin_fecha_caducidad' => $resultado['sin_fecha'],
             'sin_carril'          => $resultado['sin_carril'],
             'sin_traspaso'        => $resultado['sin_traspaso'],
+            // Se devolvían solo desde maquina_importar_stock.php, así que
+            // esta pantalla no tenía cómo avisar que un carril lleno dejó
+            // la carga en cero ni ofrecer ampliar su capacidad. El usuario
+            // veía "Carga completada" con cero piezas movidas.
+            'capacidad_ajustada'  => $resultado['capacidad_ajustada'],
+            'capacidad_pendiente' => $resultado['capacidad_pendiente'],
+            'carril_lleno'        => $resultado['carril_lleno'],
         ],
     ]);
 } catch (\Throwable $e) {

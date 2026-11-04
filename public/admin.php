@@ -1186,12 +1186,14 @@ Auth::requireLogin();
                 numero_lote: p.numero_lote || '',
                 fecha_caducidad: p.fecha_caducidad || '',
                 cantidad_pendiente: p.cantidad_pendiente,
-                capacidad_propuesta: p.capacidad_propuesta,
             };
             const atributos = Object.entries(datos).map(([k, v]) => `data-${k.replace(/_/g, '-')}="${escapeHtml(String(v))}"`).join(' ');
             return `<li ${atributos}>
                 <span>carril=${escapeHtml(String(p.numero_carril || ''))} producto_id=${escapeHtml(String(p.id_producto || ''))} lote=${escapeHtml(String(p.numero_lote || ''))}:
-                actual <span class="mono">${escapeHtml(String(p.capacidad_actual))}</span> → propuesta <span class="mono">${escapeHtml(String(p.capacidad_propuesta))}</span>
+                actual <span class="mono">${escapeHtml(String(p.capacidad_actual))}</span> → nueva
+                <input type="number" class="capacidad-nueva mono" style="width:90px;"
+                       value="${escapeHtml(String(p.capacidad_propuesta))}"
+                       min="${escapeHtml(String(p.capacidad_propuesta))}" step="1">
                 (+${escapeHtml(String(p.cantidad_pendiente))} sin cargar)</span>
                 <span class="acciones">
                     <button type="button" class="btn-autorizar-capacidad" data-accion="descartar">Descartar</button>
@@ -1201,7 +1203,7 @@ Auth::requireLogin();
         }).join('');
         avisoCuerpo.innerHTML = `
             <div class="aviso-caja advertencia">
-                <p class="aviso-texto">La carga se limitó al máximo ya registrado para estos carriles. Autoriza para subir la capacidad máxima y completar la carga pendiente, o descarta para dejar el límite como está.</p>
+                <p class="aviso-texto">La carga se limitó al máximo ya registrado para estos carriles (o no cupo nada, si el carril ya estaba lleno). Autoriza para subir la capacidad máxima y completar la carga pendiente, o descarta para dejar el límite como está. Puedes editar la capacidad nueva antes de autorizar: subirla sí, bajarla no -- cargar menos de lo pendiente se rechaza del lado del servidor.</p>
             </div>
             <ul class="aviso-lista-carriles">${filas}</ul>
         `;
@@ -1228,13 +1230,16 @@ Auth::requireLogin();
                     numero_lote: d.numeroLote,
                     fecha_caducidad: d.fechaCaducidad,
                     cantidad_pendiente: d.cantidadPendiente,
-                    capacidad_propuesta: d.capacidadPropuesta,
+                    // Editable desde 2026-11-04: el administrador puede
+                    // subir el valor propuesto antes de autorizar.
+                    capacidad_propuesta: li?.querySelector('.capacidad-nueva')?.value,
                 }),
             });
             const json = await res.json();
             if (!json.ok) throw new Error(json.error || 'No se pudo procesar.');
             if (li) {
                 li.querySelectorAll('button').forEach(b => b.disabled = true);
+                li.querySelectorAll('.capacidad-nueva').forEach(i => i.disabled = true);
                 const etiqueta = accion === 'autorizar' ? 'Autorizado ✓' : 'Descartado';
                 li.insertAdjacentHTML('beforeend', ` <strong>${etiqueta}</strong>`);
             }
@@ -1421,13 +1426,16 @@ Auth::requireLogin();
             </div>`);
         }
 
-        // Carriles ya en su capacidad máxima (cero espacio disponible): es
-        // un estado esperado/correcto, no una discrepancia -- solo se
-        // informa (verde), sin pedir autorización. Decisión del usuario
-        // 2026-09-10.
+        // Carriles ya en su capacidad máxima (cero espacio disponible).
+        // Hasta 2026-11-04 esto se informaba en verde como "estado
+        // correcto, nada que decidir". No lo es: como capacidad_maxima se
+        // auto-calibra con la primera carga, es la razón más común de que
+        // una carga termine con cero piezas movidas. Ahora cada uno de
+        // estos carriles genera también una fila en capacidad_pendiente,
+        // o sea que se puede ampliar desde el aviso de arriba.
         if (data.carril_lleno && data.carril_lleno.length) {
-            partes.push(`<div class="aviso-caja exito">
-                <p class="aviso-texto">✓ ${data.carril_lleno.length} carril(es) ya estaban en su capacidad máxima -- no se cargó nada ahí, todo en orden.</p>
+            partes.push(`<div class="aviso-caja advertencia">
+                <p class="aviso-texto">${data.carril_lleno.length} carril(es) ya estaban en su capacidad máxima: no se cargó nada ahí. Usa "Ver" en el aviso de capacidad pendiente para ampliarlos y completar la carga.</p>
                 <ul class="aviso-lista-carriles" style="margin-top:10px;">${data.carril_lleno.map(c => `
                     <li><span>carril=${escapeHtml(String(c.numero_carril || ''))} producto_id=${escapeHtml(String(c.id_producto || ''))}: capacidad máxima ${escapeHtml(String(c.capacidad_maxima))} (${escapeHtml(String(c.cantidad_no_cargada))} unidad(es) no cargadas)</span></li>`).join('')}</ul>
             </div>`);

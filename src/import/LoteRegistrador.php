@@ -43,13 +43,20 @@ final class LoteRegistrador
 
     /**
      * Carriles que ya estaban EXACTAMENTE en su capacidad_maxima (cero
-     * espacio disponible) cuando llegó una carga nueva -- estado esperado/
-     * correcto, no una discrepancia que necesite decidirse: no se pide
-     * autorización ni se ofrece Autorizar/Descartar, solo se informa
-     * (ver renderResultadoStock en admin.php, recuadro verde). Distinto de
-     * $capacidadPendiente, donde SÍ cabía algo (recorte parcial) y por eso
-     * sí hay una discrepancia real que ameriya decidir. Decisión del
-     * usuario 2026-09-10. Mismo patrón de reinicio por llamada.
+     * espacio disponible) cuando llegó una carga nueva. Se informa como
+     * detalle de lo que pasó en esa carga.
+     *
+     * CAMBIO 2026-11-04: antes esto era un callejón sin salida -- se
+     * informaba como "estado correcto, no hay nada que decidir" y la
+     * cantidad simplemente no se cargaba. En la práctica es el caso MÁS
+     * común, porque capacidad_maxima se auto-calibra con la PRIMERA carga
+     * (rama $capacidadMaxima === 0 de abajo): si la primera vez entraron 4
+     * piezas, el carril queda con capacidad 4 y lleno, y toda carga
+     * posterior cae aquí y no carga nada sin que el operador vea por qué.
+     * Ahora este caso también genera una entrada en $capacidadPendiente,
+     * así que se puede autorizar la ampliación igual que el recorte
+     * parcial. Cada carril lleno aparece en las dos listas: aquí como
+     * detalle y allá como acción pendiente.
      *
      * @var list<array{numero_carril:int|string, id_producto:int, capacidad_maxima:int, cantidad_no_cargada:int}>
      */
@@ -207,6 +214,20 @@ final class LoteRegistrador
                         'id_producto' => $l['id_producto'],
                         'capacidad_maxima' => $capacidadMaxima,
                         'cantidad_no_cargada' => $cantidadSolicitada,
+                    ];
+                    // Carril sin un solo hueco: se ofrece ampliar la
+                    // capacidad para que quepa TODO lo que traía el Excel.
+                    // Sin esto, la carga terminaba en silencio con cero
+                    // piezas movidas (ver comentario de $carrilLleno).
+                    $this->capacidadPendiente[] = [
+                        'id_carril' => $idCarril,
+                        'numero_carril' => $l['numero_carril'],
+                        'id_producto' => $l['id_producto'],
+                        'numero_lote' => $l['numero_lote'],
+                        'fecha_caducidad' => $l['fecha_caducidad'],
+                        'cantidad_pendiente' => $cantidadSolicitada,
+                        'capacidad_actual' => $capacidadMaxima,
+                        'capacidad_propuesta' => $capacidadMaxima + $cantidadSolicitada,
                     ];
                     continue;
                 }
