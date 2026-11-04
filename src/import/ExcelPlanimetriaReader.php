@@ -55,6 +55,7 @@ final class ExcelPlanimetriaReader
         // ningun alias conocido se deja tal cual (columna extra que
         // simplemente se ignora mas adelante, no rompe el resto).
         $encabezados = EncabezadoAlias::resolver($encabezadosCrudos, self::ALIAS);
+        $this->validarSinColumnasDuplicadas($encabezadosCrudos);
         $this->validarColumnasRequeridas($encabezados);
         $colFecha = array_search('fecha_caducidad', $encabezados, true);
 
@@ -120,6 +121,38 @@ final class ExcelPlanimetriaReader
         }
 
         return null;
+    }
+
+    /**
+     * Rechaza el Excel si dos columnas distintas significan lo mismo.
+     *
+     * Bug real 2026-11-04: con "CANTIDAD" y "STOCK" en el mismo archivo
+     * (las dos son alias de 'cantidad'), array_combine() en leer() se queda
+     * con la ÚLTIMA. Si esa venía vacía, TODAS las cantidades entraban en 0
+     * y la carga terminaba sin un solo error -- las filas se descartaban
+     * calladas en LoteRegistrador ("Cantidad inválida en el Excel") y el
+     * endpoint devolvía ok:true.
+     *
+     * Se rechaza en vez de elegir una: adivinar en silencio fue el bug.
+     *
+     * @param list<string> $encabezadosCrudos texto literal de la fila 1
+     */
+    private function validarSinColumnasDuplicadas(array $encabezadosCrudos): void
+    {
+        $colisiones = EncabezadoAlias::colisiones($encabezadosCrudos, self::ALIAS);
+        if ($colisiones === []) {
+            return;
+        }
+
+        $detalle = [];
+        foreach ($colisiones as $canonico => $crudos) {
+            $detalle[] = '"' . implode('" y "', $crudos) . '" (las ' . count($crudos) . ' significan ' . $canonico . ')';
+        }
+
+        throw new \RuntimeException(
+            'El Excel tiene columnas repetidas que significan lo mismo: ' . implode('; ', $detalle)
+            . '. Deja solo una de cada grupo (borra o renombra la otra) y vuelve a subirlo.'
+        );
     }
 
     /**
