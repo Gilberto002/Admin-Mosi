@@ -79,11 +79,41 @@ final class PlanimetriaImportador
         $idMaquinaEsclava = $stmt->fetchColumn();
         $idMaquinaEsclava = $idMaquinaEsclava ? (int) $idMaquinaEsclava : null;
 
+        // 1.5 Verificar POR ADELANTADO que no haya un inventario cíclico
+        // abierto. Antes esto solo se comprobaba dentro del primer traspaso
+        // real, o sea en la fila N y con staging/catálogo/carriles ya
+        // escritos; y si todas las cantidades venían en 0 no se comprobaba
+        // nunca, porque esas filas se descartan antes de llegar al traspaso.
+        // Caso real 2026-11-04: el admin veía "no carga la cantidad" sin
+        // ningún error, y recién al reintentar con cantidades buenas salía
+        // el mensaje del cíclico. Mejor fallar aquí, antes de tocar nada.
+        TraspasoService::verificarCargaStockPosible($this->pdo, $idSucursalOrigen);
+
         // 2. Leer Excel
         $reader = new ExcelPlanimetriaReader();
         $filas = $reader->leer($rutaExcel);
         if (count($filas) === 0) {
             throw new \RuntimeException('El Excel no tiene filas válidas.');
+        }
+
+        // 2.5 Red de seguridad: un archivo donde NINGUNA fila trae cantidad
+        // es un archivo mal armado, no una carga vacía legítima. Sin esto,
+        // LoteRegistrador descarta fila por fila con "Cantidad inválida en
+        // el Excel" y el endpoint responde ok:true -- el admin ve la carga
+        // como exitosa y el stock en cero. El guard de columnas duplicadas
+        // de ExcelPlanimetriaReader ya cubre la causa conocida
+        // ("CANTIDAD" + "STOCK"); esto atrapa cualquier otra (celdas de
+        // texto, columna correcta pero vacía, etc.).
+        $totalCantidad = 0;
+        foreach ($filas as $f) {
+            $totalCantidad += (int) ($f['cantidad'] ?? 0);
+        }
+        if ($totalCantidad <= 0) {
+            throw new \RuntimeException(
+                'El Excel se leyó (' . count($filas) . ' filas) pero ninguna trae cantidad mayor a cero. '
+                . 'Revisa la columna Cantidad/Stock: que tenga números (no texto) y que no haya dos columnas '
+                . 'de cantidad en el mismo archivo. No se cargó nada.'
+            );
         }
 
         // 3. Staging

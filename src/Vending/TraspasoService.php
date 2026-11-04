@@ -971,18 +971,59 @@ final class TraspasoService
      */
     private static function verificarSinCiclicoAbierto(PDO $pdo, int $idSucursalA, int $idSucursalB): void
     {
+        // id_Sucursal = 0 se excluye a proposito. En la tabla real hay
+        // conteos huerfanos con sucursal 0 que nadie cerro nunca (vistos
+        // 2026-11-04: siete, el mas viejo de 2023, todos con
+        // i_itemsProcesados = 0). No corresponden a ninguna sucursal, pero
+        // el dia que cualquier ruta le pase un 0 a este guard bloquearian
+        // TODO traspaso para siempre, con un mensaje hablando de "la
+        // sucursal 0" que no le dice nada a nadie.
         $stmt = $pdo->prepare(
-            'SELECT COUNT(*) FROM tbl_InventarioCiclico_Cedis1
+            'SELECT TOP 1 id_inventario, id_Sucursal, dt_Fecha
+             FROM tbl_InventarioCiclico_Cedis1
              WHERE dt_FechaCierre IS NULL AND id_Status = 1
-               AND (id_Sucursal = :a OR id_Sucursal = :b)'
+               AND id_Sucursal <> 0
+               AND (id_Sucursal = :a OR id_Sucursal = :b)
+             ORDER BY dt_Fecha DESC'
         );
         $stmt->execute(['a' => $idSucursalA, 'b' => $idSucursalB]);
+        $ciclico = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ((int) $stmt->fetchColumn() > 0) {
+        if ($ciclico) {
+            // El mensaje nombra el inventario y la fecha: antes solo decia
+            // "la sucursal X o la Y", y para saber CUAL conteo bloqueaba
+            // habia que ir a consultar la base a mano (caso real
+            // 2026-11-04: inventario 8391, sucursal 710, abierto desde el
+            // 30-oct sin un solo item procesado).
+            $fecha = (string) ($ciclico['dt_Fecha'] ?? '');
+            $fechaCorta = $fecha !== '' ? substr($fecha, 0, 16) : 'fecha desconocida';
+
             throw new \RuntimeException(
-                "No se puede traspasar: la sucursal {$idSucursalA} o la {$idSucursalB} tienen un inventario cíclico abierto"
+                "No se puede traspasar: el inventario cíclico {$ciclico['id_inventario']} de la sucursal "
+                . "{$ciclico['id_Sucursal']} sigue abierto desde {$fechaCorta}. "
+                . 'Ciérralo (o espera a que termine el conteo físico) y vuelve a intentar.'
             );
         }
+    }
+
+    /**
+     * Comprueba por adelantado que una carga de stock a vending sea posible,
+     * sin escribir nada.
+     *
+     * Existe para que PlanimetriaImportador pueda fallar en el primer
+     * segundo en vez de en la fila N: antes el guard del ciclico solo corria
+     * dentro de ejecutarTraspasoCompleto(), asi que un Excel se procesaba a
+     * medias (staging, catalogo, carriles) y recien al llegar al primer
+     * traspaso real reventaba -- y como ese error no se captura, abortaba
+     * todo el archivo. Peor aun: si TODAS las cantidades venian en 0, las
+     * filas se descartaban antes de llegar al traspaso y el guard nunca se
+     * ejecutaba, asi que la carga "terminaba bien" con todo en cero.
+     * Caso real 2026-11-04.
+     */
+    public static function verificarCargaStockPosible(PDO $pdo, int $idSucursalOrigen): void
+    {
+        $idSucursalVirtual = self::resolverSucursalVirtual($pdo, $idSucursalOrigen);
+        self::verificarSinCiclicoAbierto($pdo, $idSucursalOrigen, $idSucursalVirtual);
     }
 
     /** @return list<array<string,mixed>> */

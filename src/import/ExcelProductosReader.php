@@ -45,6 +45,22 @@ final class ExcelProductosReader
         $encabezadosCrudos = array_map(static fn($valor): string => trim((string) $valor), $filas[0] ?? []);
         $encabezados = EncabezadoAlias::resolver($encabezadosCrudos, self::ALIAS);
 
+        // Mismo guard que ExcelPlanimetriaReader: dos columnas que caen en la
+        // misma clave canónica hacen que array_combine() se quede con la
+        // última y la otra se pierda en silencio (bug real 2026-11-04 con
+        // "CANTIDAD" + "STOCK"). Se rechaza el archivo en vez de adivinar.
+        $colisiones = EncabezadoAlias::colisiones($encabezadosCrudos, self::ALIAS);
+        if ($colisiones !== []) {
+            $detalle = [];
+            foreach ($colisiones as $canonico => $crudos) {
+                $detalle[] = '"' . implode('" y "', $crudos) . '" (las ' . count($crudos) . ' significan ' . $canonico . ')';
+            }
+            throw new \RuntimeException(
+                'El Excel tiene columnas repetidas que significan lo mismo: ' . implode('; ', $detalle)
+                . '. Deja solo una de cada grupo (borra o renombra la otra) y vuelve a subirlo.'
+            );
+        }
+
         $datos = [];
         for ($i = 1; $i < count($filas); $i++) {
             $fila = $filas[$i];

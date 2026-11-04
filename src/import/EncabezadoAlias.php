@@ -38,6 +38,44 @@ final class EncabezadoAlias
     }
 
     /**
+     * Detecta encabezados distintos que caen en la MISMA clave canónica.
+     *
+     * Bug real 2026-11-04: un Excel con las columnas "CANTIDAD" y "STOCK"
+     * (ambas alias de 'cantidad') pasaba la validación de columnas
+     * requeridas -- que solo mira que la clave exista -- y después
+     * array_combine() en el lector se quedaba con la ÚLTIMA, así que si esa
+     * venía vacía TODAS las cantidades entraban en 0 sin un solo error
+     * visible. Lo mismo aplica a 'nombre', que acepta "NOMBRE", "PRODUCTO"
+     * y "DESCRIPCIÓN" a la vez.
+     *
+     * No se elige una por el lector a propósito: adivinar en silencio fue
+     * justo lo que produjo el bug. El archivo se rechaza y el admin decide
+     * cuál columna quitar o renombrar.
+     *
+     * @param list<string> $encabezadosCrudos
+     * @param array<string, list<string>> $aliasPorCanonico
+     * @return array<string, list<string>> canonico => [encabezados crudos que chocan]
+     */
+    public static function colisiones(array $encabezadosCrudos, array $aliasPorCanonico): array
+    {
+        $resueltos = self::resolver($encabezadosCrudos, $aliasPorCanonico);
+
+        $porCanonico = [];
+        foreach ($resueltos as $i => $canonico) {
+            // Solo interesan las claves canónicas conocidas: un encabezado
+            // que no matcheó ningún alias se queda con su texto crudo y dos
+            // columnas con el mismo nombre literal no son una colisión de
+            // alias (esas las ignora el lector igual).
+            if (!isset($aliasPorCanonico[$canonico])) {
+                continue;
+            }
+            $porCanonico[$canonico][] = $encabezadosCrudos[$i];
+        }
+
+        return array_filter($porCanonico, static fn(array $crudos): bool => count($crudos) > 1);
+    }
+
+    /**
      * Minusculas, sin acentos/diéresis, sin guiones ni guion_bajo (se tratan
      * como espacio), espacios colapsados. "Código Barras", "codigo_barras" y
      * "CODIGO-BARRAS" normalizan igual: "codigo barras".
