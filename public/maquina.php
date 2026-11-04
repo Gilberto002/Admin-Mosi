@@ -989,6 +989,107 @@ Auth::requireLogin();
         });
     }
 
+    // Dibuja lo que la carga hizo (o no pudo hacer) con capacidad_maxima.
+    // Hasta 2026-11-04 esta pantalla no recibía nada de esto: un carril ya
+    // lleno dejaba la carga en cero piezas y el único mensaje visible era
+    // "Carga completada". Ahora se avisa y se puede ampliar la capacidad
+    // desde aquí, igual que en admin.php, con el valor propuesto editable.
+    function renderCapacidad(data, idMaquina) {
+        let html = '';
+        const ajustada = data.capacidad_ajustada || [];
+        const pendiente = data.capacidad_pendiente || [];
+        const llenos = data.carril_lleno || [];
+
+        if (ajustada.length > 0) {
+            html += `<p class="msg-ok">${ajustada.length} carril(es) estrenaron capacidad máxima con esta carga: `
+                + ajustada.map(a => `${escapeHtml(String(a.numero_carril))}→${escapeHtml(String(a.capacidad_nueva))}`).join(', ')
+                + `.</p>`;
+        }
+
+        // Todo carril lleno genera además una fila pendiente, así que solo
+        // se informa aparte si por algún motivo no la hubiera.
+        if (pendiente.length === 0 && llenos.length > 0) {
+            html += `<p class="msg-error">${llenos.length} carril(es) ya estaban en su capacidad máxima: no se cargó nada ahí.</p>`;
+        }
+
+        if (pendiente.length === 0) return html;
+
+        const filas = pendiente.map(p => {
+            const datos = {
+                id_carril: p.id_carril,
+                id_producto: p.id_producto,
+                numero_lote: p.numero_lote || '',
+                fecha_caducidad: p.fecha_caducidad || '',
+                cantidad_pendiente: p.cantidad_pendiente,
+            };
+            const attrs = Object.entries(datos)
+                .map(([k, v]) => `data-${k.replace(/_/g, '-')}="${escapeHtml(String(v))}"`)
+                .join(' ');
+            return `<li ${attrs} style="padding:8px 0;border-bottom:1px solid var(--linea,#e4e9e8);">
+                <div>carril <strong class="mono">${escapeHtml(String(p.numero_carril))}</strong>
+                     · producto <span class="mono">${escapeHtml(String(p.id_producto))}</span>
+                     · lote <span class="mono">${escapeHtml(String(p.numero_lote || '-'))}</span></div>
+                <div style="margin:6px 0;">capacidad actual <span class="mono">${escapeHtml(String(p.capacidad_actual))}</span>
+                     → nueva <input type="number" class="capacidad-nueva mono" style="width:90px;"
+                            value="${escapeHtml(String(p.capacidad_propuesta))}"
+                            min="${escapeHtml(String(p.capacidad_propuesta))}" step="1">
+                     <span class="muted">(${escapeHtml(String(p.cantidad_pendiente))} pieza(s) sin cargar)</span></div>
+                <div class="acciones">
+                    <button type="button" class="btn-autorizar-capacidad" data-accion="descartar">Descartar</button>
+                    <button type="button" class="btn-autorizar-capacidad" data-accion="autorizar">Autorizar y cargar</button>
+                </div>
+            </li>`;
+        }).join('');
+
+        html += `<div class="msg-error" data-id-maquina="${escapeHtml(String(idMaquina))}">
+            <p><strong>${pendiente.length} carril(es) no tenían espacio para todo lo que traía el Excel.</strong>
+               Autoriza para subir la capacidad máxima y cargar lo que faltó, o descarta para dejar el límite como está.
+               Puedes subir el valor propuesto, no bajarlo: cargar menos de lo pendiente se rechaza del lado del servidor.</p>
+            <ul style="list-style:none;padding:0;margin:8px 0 0;">${filas}</ul>
+        </div>`;
+
+        return html;
+    }
+
+    // Delegado en document porque .resultado-carga se reescribe en cada carga.
+    document.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('.resultado-carga .btn-autorizar-capacidad');
+        if (!btn) return;
+        const li = btn.closest('li');
+        const caja = btn.closest('[data-id-maquina]');
+        const d = li ? li.dataset : {};
+        const accion = btn.dataset.accion;
+        const input = li ? li.querySelector('.capacidad-nueva') : null;
+
+        li.querySelectorAll('button').forEach(b => b.disabled = true);
+        try {
+            const res = await fetch('api/autorizar_capacidad_carril.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_carril: d.idCarril,
+                    accion,
+                    id_producto: d.idProducto,
+                    numero_lote: d.numeroLote,
+                    fecha_caducidad: d.fechaCaducidad,
+                    cantidad_pendiente: d.cantidadPendiente,
+                    capacidad_propuesta: input ? input.value : null,
+                }),
+            });
+            const json = await res.json();
+            if (!json.ok) throw new Error(json.error || 'No se pudo procesar.');
+            if (input) input.disabled = true;
+            li.insertAdjacentHTML('beforeend',
+                `<div class="msg-ok">${accion === 'autorizar' ? 'Autorizado y cargado ✓' : 'Descartado'}</div>`);
+            if (accion === 'autorizar' && caja) {
+                cargarCarrilesYGrafica(parseInt(caja.dataset.idMaquina, 10));
+            }
+        } catch (e) {
+            li.querySelectorAll('button').forEach(b => b.disabled = false);
+            li.insertAdjacentHTML('beforeend', `<div class="msg-error">${escapeHtml(e.message)}</div>`);
+        }
+    });
+
     async function manejarCargaStock(ev) {
         ev.preventDefault();
         const form = ev.target;
@@ -1024,6 +1125,7 @@ Auth::requireLogin();
                 if ((json.data.sin_traspaso || []).length > 0) {
                     detalle += `<p class="msg-error">${json.data.sin_traspaso.length} fila(s) sin traspaso completo desde la sucursal.</p>`;
                 }
+                detalle += renderCapacidad(json.data, idMaquina);
                 resultadoDiv.innerHTML = detalle;
                 cargarCarrilesYGrafica(parseInt(idMaquina, 10));
             }
