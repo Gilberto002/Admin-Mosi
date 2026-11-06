@@ -30,15 +30,17 @@ POST /api/android_receta_consultar.php
 
 ```json
 {
-  "folio": "UUID_DE_RECETA",
+  "folio": "0009100032",
   "id_maquina": 12,
   "numero_serie": "ML-001"
 }
 ```
 
 Devuelve receta e `items[]` con `numero_carril`, `codigo_barras`,
-`cantidad_solicitada`, stock del carril, lote, caducidad, `precio` e
-`imagen_url` cuando el producto tenga imagen cargada.
+`cantidad_solicitada`, `cantidad_entregada`, `cantidad_pendiente`, stock fisico
+del carril, lote, caducidad, `precio` e `imagen_url` cuando el producto tenga
+imagen cargada. Responde `409` y no permite surtir cuando la receta ya fue
+entregada/fallida o cuando el stock fisico de carril y lotes es insuficiente.
 
 ## Carrito Android
 
@@ -93,7 +95,7 @@ POST /api/android_carrito_crear_receta.php
 Este endpoint crea una receta pendiente; despues la app usa el flujo actual de
 `android_receta_consultar`, `android_receta_iniciar` y
 `android_receta_finalizar`. El stock se descuenta al confirmar finalizacion
-fisica, no al crear la receta.
+del giro del motor, no al crear la receta ni al esperar la caida.
 
 ## Marcar receta en proceso
 
@@ -103,15 +105,16 @@ POST /api/android_receta_iniciar.php
 
 ```json
 {
-  "folio": "UUID_DE_RECETA",
+  "folio": "0009100032",
   "id_maquina": 12,
   "numero_serie": "ML-001",
   "request_id": "uuid-unico"
 }
 ```
 
-Si el evento viene de cola offline, `request_id` es obligatorio y debe ser el
-mismo en cada reintento.
+`request_id` es obligatorio. Debe ser unico para este evento y conservarse sin
+cambios en todos sus reintentos. Antes de autorizar motores el servidor vuelve
+a validar pertenencia, vigencia, estatus y stock fisico.
 
 ## Finalizar receta y descontar inventario
 
@@ -121,12 +124,13 @@ POST /api/android_receta_finalizar.php
 
 ```json
 {
-  "folio": "UUID_DE_RECETA",
+  "folio": "0009100032",
   "id_maquina": 12,
   "numero_serie": "ML-001",
   "request_id": "uuid-unico",
   "items": [
     {
+      "id_maquina": 12,
       "numero_carril": 5,
       "cantidad_entregada": 1
     }
@@ -134,8 +138,13 @@ POST /api/android_receta_finalizar.php
 }
 ```
 
-El inventario se descuenta aqui, despues de que la app confirme caida fisica.
-`request_id` evita descuentos duplicados si la app reintenta.
+El inventario se descuenta exclusivamente aqui, inmediatamente despues de que
+la app ejecute y dé por completado el giro del motor. No se espera confirmacion
+de caida. `cantidad_entregada` representa la cantidad acumulada de giros
+completados por carril: si antes giro 1 vez y despues gira otra, la app envia 2. El servidor calcula
+`delta = cantidad_nueva - cantidad_anterior`, por lo que un reintento identico
+no vuelve a descontar. Cada evento nuevo usa otro `request_id`; sus reintentos
+usan el mismo.
 
 ## Reportar error
 
@@ -145,17 +154,24 @@ POST /api/android_error_surtido.php
 
 ```json
 {
-  "folio": "UUID_DE_RECETA",
+  "folio": "0009100032",
   "id_maquina": 12,
   "numero_serie": "ML-001",
   "numero_carril": 5,
   "codigo_barras": "7501234567890",
   "codigo_error": "MOTOR_TIMEOUT",
-  "mensaje": "No se confirmo caida",
+  "mensaje": "El motor no completo el giro",
   "request_id": "uuid-unico",
   "marcar_receta_fallida": true
 }
 ```
+
+Si ningun motor completo un giro, se envia este error con
+`marcar_receta_fallida=true`. Si ya se completo al menos un giro, no se marca
+fallida: se llama `android_receta_finalizar.php` con la cantidad acumulada de
+giros completados y la receta queda `4 = Parcial`. El servidor protege esta
+regla y no permite convertir en fallida una receta que ya tenga stock
+descontado.
 
 ## Configuracion de maquina
 

@@ -152,7 +152,7 @@ El flujo real queda como receta: este endpoint crea `vendingm.recetas` y
 `vendingm.detalle_receta`; despues la app usa el flujo actual de surtido de
 receta (`android_receta_consultar`, `android_receta_iniciar`,
 `android_receta_finalizar`). El descuento de stock sigue ocurriendo al finalizar
-el surtido fisico, no al crear la receta.
+cada giro de motor, sin esperar confirmacion de caida y nunca al crear la receta.
 
 ## Imagenes y productos
 

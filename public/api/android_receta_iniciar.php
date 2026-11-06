@@ -11,10 +11,18 @@ $body = AndroidApi::body();
 
 try {
     $pdo = Connection::get();
+    $pdo->exec("
+        IF COL_LENGTH('vendingm.detalle_receta', 'id_maquina') IS NULL
+            ALTER TABLE vendingm.detalle_receta ADD id_maquina INT NULL
+    ");
     $maquina = AndroidApi::autenticar($pdo, $body);
+    if (!$maquina) {
+        AndroidApi::responder(['ok' => false, 'error' => 'Falta id_maquina o numero_serie'], 422);
+    }
     $folio = AndroidApi::folio($body);
-    $requestId = trim((string) ($body['request_id'] ?? ''));
+    $requestId = AndroidApi::requestId($body);
 
+    AndroidApi::validarRequestIdTipo($pdo, $requestId, 'receta_iniciar');
     $previo = AndroidApi::eventoPrevio($pdo, $requestId);
     if ($previo) {
         AndroidApi::responder($previo);
@@ -38,8 +46,7 @@ try {
         $pdo->rollBack();
         AndroidApi::responder(['ok' => false, 'error' => 'Receta no encontrada'], 404);
     }
-    if (($receta['origen'] ?? null) === 'medicalcenter'
-        && $receta['fecha_expiracion'] !== null
+    if ($receta['fecha_expiracion'] !== null
         && strtotime((string) $receta['fecha_expiracion']) <= time()) {
         $pdo->rollBack();
         AndroidApi::responder(['ok' => false, 'error' => 'La receta vending expiro; solicita su reimpresion'], 410);
@@ -62,6 +69,54 @@ try {
     if ((int) $receta['id_estatus'] === AndroidApi::ESTATUS_ENTREGADA) {
         $pdo->rollBack();
         AndroidApi::responder(['ok' => false, 'error' => 'La receta ya fue entregada'], 409);
+    }
+    if ((int) $receta['id_estatus'] === AndroidApi::ESTATUS_FALLIDA) {
+        $pdo->rollBack();
+        AndroidApi::responder(['ok' => false, 'error' => 'La receta esta marcada como fallida'], 409);
+    }
+
+    // Se vuelve a validar inmediatamente antes de autorizar motores. La consulta
+    // previa no basta porque otra operacion pudo consumir stock entre llamadas.
+    $stmtSinStock = $pdo->prepare(
+        "SELECT TOP 1 COALESCE(dr.id_maquina, :maquina_default) AS id_maquina,
+                dr.numero_carril,
+                ISNULL(dr.cantidad_solicitada, 0) - ISNULL(dr.cantidad_entregada, 0) AS cantidad_pendiente,
+                ISNULL(ca.cantidad_actual, 0) AS stock_carril,
+                ISNULL(ls.stock_lotes, 0) AS stock_lotes
+         FROM vendingm.detalle_receta dr
+         LEFT JOIN vendingm.carriles ca
+           ON ca.id_maquina = COALESCE(dr.id_maquina, :maquina_default2)
+          AND ca.numero_carril = dr.numero_carril
+         OUTER APPLY (
+             SELECT SUM(lx.cantidad_actual) AS stock_lotes
+             FROM vendingm.lotes lx
+             WHERE lx.id_carril = ca.id_carril
+               AND lx.id_producto = dr.id_producto
+         ) ls
+         WHERE dr.id_receta = :id_receta
+           AND (
+               ISNULL(ca.cantidad_actual, 0) < ISNULL(dr.cantidad_solicitada, 0) - ISNULL(dr.cantidad_entregada, 0)
+               OR ISNULL(ls.stock_lotes, 0) < ISNULL(dr.cantidad_solicitada, 0) - ISNULL(dr.cantidad_entregada, 0)
+           )"
+    );
+    $stmtSinStock->execute([
+        'maquina_default' => $receta['id_maquina'],
+        'maquina_default2' => $receta['id_maquina'],
+        'id_receta' => $receta['id_receta'],
+    ]);
+    $sinStock = $stmtSinStock->fetch(PDO::FETCH_ASSOC);
+    if ($sinStock) {
+        $pdo->rollBack();
+        AndroidApi::responder([
+            'ok' => false,
+            'error' => 'Stock fisico insuficiente; no se autoriza iniciar motores',
+            'data' => [
+                'id_maquina' => (int) $sinStock['id_maquina'],
+                'numero_carril' => (int) $sinStock['numero_carril'],
+                'cantidad_pendiente' => (int) $sinStock['cantidad_pendiente'],
+                'stock' => min((int) $sinStock['stock_carril'], (int) $sinStock['stock_lotes']),
+            ],
+        ], 409);
     }
 
     $upd = $pdo->prepare(

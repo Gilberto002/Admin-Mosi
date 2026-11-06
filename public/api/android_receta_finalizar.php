@@ -10,7 +10,7 @@ use App\Dispensacion\SalidaRegistrador;
 AndroidApi::requirePost();
 $body = AndroidApi::body();
 
-// Produccion: toda entrega confirmada descuenta el lote/carril correspondiente.
+// Produccion: cada giro de motor completado descuenta el lote/carril correspondiente.
 $omitirStockTemporal = false;
 
 try {
@@ -20,15 +20,20 @@ try {
             ALTER TABLE vendingm.detalle_receta ADD id_maquina INT NULL
     ");
     $maquina = AndroidApi::autenticar($pdo, $body);
+    if (!$maquina) {
+        AndroidApi::responder(['ok' => false, 'error' => 'Falta id_maquina o numero_serie'], 422);
+    }
     $folio = AndroidApi::folio($body);
-    $requestId = trim((string) ($body['request_id'] ?? ''));
+    $requestId = AndroidApi::requestId($body);
     $items = is_array($body['items'] ?? null) ? $body['items'] : [];
 
     if (empty($items)) {
         AndroidApi::responder(['ok' => false, 'error' => 'Falta items'], 422);
     }
 
-    // La finalizacion es acumulada por item. Algunas versiones de la app
+    AndroidApi::validarRequestIdTipo($pdo, $requestId, 'receta_finalizar');
+
+    // La finalizacion acumula giros de motor completados por item. Algunas versiones de la app
     // reutilizan el mismo request_id en rondas sucesivas; si devolvemos aqui
     // el evento anterior, nunca se registran las siguientes cantidades. El
     // proceso de abajo ya es idempotente porque calcula delta contra lo
@@ -52,12 +57,6 @@ try {
         $pdo->rollBack();
         AndroidApi::responder(['ok' => false, 'error' => 'Receta no encontrada'], 404);
     }
-    if (($receta['origen'] ?? null) === 'medicalcenter'
-        && $receta['fecha_expiracion'] !== null
-        && strtotime((string) $receta['fecha_expiracion']) <= time()) {
-        $pdo->rollBack();
-        AndroidApi::responder(['ok' => false, 'error' => 'La receta vending expiro; solicita su reimpresion'], 410);
-    }
     if ($maquina) {
         $unidadAuth = ((int) $maquina['rol_maquina'] === 2 && $maquina['id_maquina_padre'] !== null)
             ? (int) $maquina['id_maquina_padre']
@@ -75,6 +74,14 @@ try {
     }
     // Permitir reintentos despues de entregada: si el payload trae las mismas
     // cantidades acumuladas, los deltas quedan en cero y no descuenta dos veces.
+    if (!in_array((int) $receta['id_estatus'], [
+        AndroidApi::ESTATUS_EN_PROCESO,
+        AndroidApi::ESTATUS_PARCIAL,
+        AndroidApi::ESTATUS_ENTREGADA,
+    ], true)) {
+        $pdo->rollBack();
+        AndroidApi::responder(['ok' => false, 'error' => 'La receta debe iniciarse antes de finalizar el surtido'], 409);
+    }
 
     $stmtDetalle = $pdo->prepare(
         "SELECT COALESCE(dr.id_maquina, :id_maquina) AS id_maquina,

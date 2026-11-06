@@ -54,6 +54,18 @@ final class AndroidApi
         return strtoupper($folio);
     }
 
+    public static function requestId(array $body): string
+    {
+        $requestId = trim((string) ($body['request_id'] ?? ''));
+        if ($requestId === '') {
+            self::responder(['ok' => false, 'error' => 'Falta request_id para garantizar idempotencia'], 422);
+        }
+        if (strlen($requestId) > 120) {
+            self::responder(['ok' => false, 'error' => 'request_id excede 120 caracteres'], 422);
+        }
+        return $requestId;
+    }
+
     public static function folioCompacto(string $folio): string
     {
         return strtoupper(str_replace('-', '', trim($folio)));
@@ -302,6 +314,23 @@ final class AndroidApi
         }
         $payload['meta']['duplicado'] = true;
         return $payload;
+    }
+
+    public static function validarRequestIdTipo(PDO $pdo, string $requestId, string $tipo): void
+    {
+        if ($requestId === '') {
+            return;
+        }
+        $stmt = $pdo->prepare('SELECT tipo FROM vendingm.api_eventos_android WHERE request_id = :request_id');
+        $stmt->execute(['request_id' => $requestId]);
+        $tipoPrevio = $stmt->fetchColumn();
+        if ($tipoPrevio !== false && (string) $tipoPrevio !== $tipo) {
+            self::responder([
+                'ok' => false,
+                'error' => 'request_id ya fue utilizado por otro tipo de evento',
+                'data' => ['tipo_existente' => (string) $tipoPrevio, 'tipo_recibido' => $tipo],
+            ], 409);
+        }
     }
 
     public static function guardarEvento(PDO $pdo, string $requestId, string $tipo, array $payload): void

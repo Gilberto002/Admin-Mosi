@@ -12,9 +12,12 @@ $body = AndroidApi::body();
 try {
     $pdo = Connection::get();
     $maquina = AndroidApi::autenticar($pdo, $body);
+    if (!$maquina) {
+        AndroidApi::responder(['ok' => false, 'error' => 'Falta id_maquina o numero_serie'], 422);
+    }
 
     $folio = AndroidApi::folio($body, false);
-    $requestId = trim((string) ($body['request_id'] ?? ''));
+    $requestId = AndroidApi::requestId($body);
     $codigoError = trim((string) ($body['codigo_error'] ?? ''));
     $mensaje = trim((string) ($body['mensaje'] ?? '')) ?: null;
     $numeroCarril = filter_var($body['numero_carril'] ?? null, FILTER_VALIDATE_INT) ?: null;
@@ -25,6 +28,7 @@ try {
         AndroidApi::responder(['ok' => false, 'error' => 'Falta codigo_error'], 422);
     }
 
+    AndroidApi::validarRequestIdTipo($pdo, $requestId, 'error_surtido');
     $previo = AndroidApi::eventoPrevio($pdo, $requestId);
     if ($previo) {
         AndroidApi::responder($previo);
@@ -33,6 +37,41 @@ try {
     $pdo->beginTransaction();
     if ($folio) {
         $folio = AndroidApi::resolverFolioReceta($pdo, $folio, true);
+    }
+
+    $recetaError = null;
+    $totalEntregado = 0;
+    if ($folio) {
+        $stmtReceta = $pdo->prepare(
+            "SELECT r.id_receta, r.id_maquina, r.id_estatus,
+                    ISNULL((SELECT SUM(ISNULL(dr.cantidad_entregada, 0))
+                            FROM vendingm.detalle_receta dr
+                            WHERE dr.id_receta = r.id_receta), 0) AS total_entregado
+             FROM vendingm.recetas r WITH (UPDLOCK, ROWLOCK)
+             WHERE r.codigo_receta = :folio_codigo OR CONVERT(varchar(36), r.folio) = :folio_uuid"
+        );
+        $stmtReceta->execute(['folio_codigo' => $folio, 'folio_uuid' => $folio]);
+        $recetaError = $stmtReceta->fetch(PDO::FETCH_ASSOC);
+        if (!$recetaError) {
+            $pdo->rollBack();
+            AndroidApi::responder(['ok' => false, 'error' => 'Receta no encontrada'], 404);
+        }
+
+        if ($maquina) {
+            $unidadAuth = ((int) $maquina['rol_maquina'] === 2 && $maquina['id_maquina_padre'] !== null)
+                ? (int) $maquina['id_maquina_padre']
+                : (int) $maquina['id_maquina'];
+            $stmtUnidad = $pdo->prepare(
+                "SELECT CASE WHEN rol_maquina = 2 AND id_maquina_padre IS NOT NULL THEN id_maquina_padre ELSE id_maquina END
+                 FROM vendingm.maquinas WHERE id_maquina = :id"
+            );
+            $stmtUnidad->execute(['id' => $recetaError['id_maquina']]);
+            if ($unidadAuth !== (int) $stmtUnidad->fetchColumn()) {
+                $pdo->rollBack();
+                AndroidApi::responder(['ok' => false, 'error' => 'La receta no pertenece a esta maquina'], 403);
+            }
+        }
+        $totalEntregado = (int) $recetaError['total_entregado'];
     }
 
     $stmt = $pdo->prepare(
@@ -53,19 +92,19 @@ try {
     ]);
     $idError = (int) $stmt->fetchColumn();
 
-    if ($folio && $marcarFallida) {
+    $recetaMarcadaFallida = false;
+    if ($recetaError && $marcarFallida && $totalEntregado === 0) {
         $upd = $pdo->prepare(
             "UPDATE vendingm.recetas
              SET id_estatus = :fallida
-             WHERE (codigo_receta = :folio_codigo OR CONVERT(varchar(36), folio) = :folio_uuid)
-               AND id_estatus <> :entregada"
+             WHERE id_receta = :id_receta AND id_estatus <> :entregada"
         );
         $upd->execute([
             'fallida' => AndroidApi::ESTATUS_FALLIDA,
-            'folio_codigo' => $folio,
-            'folio_uuid' => $folio,
+            'id_receta' => $recetaError['id_receta'],
             'entregada' => AndroidApi::ESTATUS_ENTREGADA,
         ]);
+        $recetaMarcadaFallida = $upd->rowCount() > 0;
     }
 
     $payload = [
@@ -74,6 +113,11 @@ try {
             'id_error' => $idError,
             'folio' => $folio,
             'codigo_error' => $codigoError,
+            'total_entregado' => $totalEntregado,
+            'receta_marcada_fallida' => $recetaMarcadaFallida,
+            'accion_requerida' => $marcarFallida && $totalEntregado > 0
+                ? 'Enviar android_receta_finalizar.php con la cantidad acumulada de giros completados'
+                : null,
         ],
         'meta' => ['request_id' => $requestId ?: null, 'duplicado' => false],
     ];

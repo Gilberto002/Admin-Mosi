@@ -403,6 +403,35 @@ Auth::requireLogin();
         }
         body.tema-mdm-oscuro .ranking-stock__barra { background: #62C873; }
 
+        .surtido-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+        .surtido-kpi { border: 1px solid var(--linea-suave); background: var(--bg); border-radius: 6px; padding: 12px; }
+        .surtido-kpi span { display: block; color: var(--texto-tenue); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+        .surtido-kpi b { display: block; margin-top: 5px; font: 700 20px/1 'JetBrains Mono', monospace; color: var(--texto); }
+        .surtido-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 14px; }
+        .surtido-bloque { min-width: 0; border: 1px solid var(--linea-suave); background: var(--bg); border-radius: 6px; overflow: hidden; }
+        .surtido-bloque__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 13px; border-bottom: 1px solid var(--linea-suave); }
+        .surtido-bloque__head h3 { margin: 0; font-size: 13px; }
+        .surtido-lista { max-height: 430px; overflow: auto; }
+        .receta-avance { padding: 13px; border-bottom: 1px solid var(--linea-suave); }
+        .receta-avance:last-child, .evento-surtido:last-child { border-bottom: 0; }
+        .receta-avance__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .receta-avance__top strong { font: 700 12px/1.2 'JetBrains Mono', monospace; }
+        .receta-avance__meta { margin-top: 5px; color: var(--texto-tenue); font-size: 10px; }
+        .receta-avance__pista { height: 7px; margin-top: 11px; background: var(--linea-suave); overflow: hidden; border-radius: 99px; }
+        .receta-avance__barra { display: block; height: 100%; background: linear-gradient(90deg, #214F8B, #62C873); }
+        .receta-avance__items { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 5px; }
+        .receta-avance__items span { border: 1px solid var(--linea-suave); border-radius: 99px; padding: 4px 7px; color: var(--texto-suave); font-size: 9px; }
+        .estado-surtido { border-radius: 99px; padding: 4px 7px; font-size: 9px; font-weight: 700; white-space: nowrap; background: rgba(142,161,176,.14); color: var(--texto-suave); }
+        .estado-surtido.e2 { background: rgba(98,200,115,.14); color: #62C873; }
+        .estado-surtido.e3 { background: rgba(33,79,139,.20); color: #7fb2f0; }
+        .estado-surtido.e4 { background: rgba(214,157,46,.16); color: #e0ad4d; }
+        .estado-surtido.e5 { background: rgba(220,80,80,.14); color: #ef7777; }
+        .evento-surtido { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 9px; padding: 11px 13px; border-bottom: 1px solid var(--linea-suave); }
+        .evento-surtido__icono { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; background: rgba(98,200,115,.12); color: #62C873; font-weight: 800; }
+        .evento-surtido.error .evento-surtido__icono { background: rgba(220,80,80,.14); color: #ef7777; }
+        .evento-surtido b { display: block; font-size: 10px; }
+        .evento-surtido p { margin: 3px 0 0; color: var(--texto-tenue); font-size: 9px; line-height: 1.4; }
+
         @keyframes voltearSalida {
             from { transform: rotateY(0deg) scale(1); opacity: 1; }
             to { transform: rotateY(34deg) translateX(14px) scale(.985); opacity: 0; }
@@ -454,6 +483,8 @@ Auth::requireLogin();
 
         @media (max-width: 920px) {
             .analitica-inventario { grid-template-columns: 1fr; }
+            .surtido-grid { grid-template-columns: 1fr; }
+            .surtido-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -551,6 +582,7 @@ Auth::requireLogin();
     let filtroCarriles = { texto: '', categoria: '' };
     let catalogoEstatusMant = null; // cache del catálogo de estatus
     let catalogoTiposMant = null;   // cache del catálogo de tipos de mantenimiento
+    let refrescoSurtidos = null;
 
     if (!idSolicitado) {
         document.getElementById('cabecera').innerHTML = '<p class="vacio">Falta el id de la máquina en la URL.</p>';
@@ -658,6 +690,7 @@ Auth::requireLogin();
     function renderPanel() {
         const u = unidades.find(x => x.id_maquina === pestanaActiva);
         const cont = document.getElementById('panel-unidad');
+        if (refrescoSurtidos) clearInterval(refrescoSurtidos);
         const datoUltimaCargaStock = USUARIO_SOLO_MAQUINAS_DASHBOARD ? '' : `
                 <div><i data-lucide="history" aria-hidden="true"></i><div class="etiqueta">Última carga de stock</div><div class="valor">${badgeMantenimiento(u.dias_sin_mantenimiento === null || u.dias_sin_mantenimiento === undefined ? null : Number(u.dias_sin_mantenimiento))}</div></div>
         `;
@@ -717,6 +750,14 @@ Auth::requireLogin();
                 <div class="card-cuerpo" id="grafica-${u.id_maquina}"><p class="cargando">Cargando…</p></div>
             </div>
 
+            <div class="card panel-animado">
+                <div class="card-encabezado">
+                    <h2>Seguimiento de surtidos</h2>
+                    <button type="button" class="btn-encabezado" id="btn-refrescar-surtidos-${u.id_maquina}">Actualizar</button>
+                </div>
+                <div class="card-cuerpo" id="surtidos-${u.id_maquina}"><p class="cargando">Cargando…</p></div>
+            </div>
+
             ${seccionCargaStock}
 
             <div class="card panel-animado">
@@ -758,10 +799,74 @@ Auth::requireLogin();
         });
 
         document.getElementById('btn-registrar-mant')?.addEventListener('click', () => abrirModalMantenimiento(u.id_maquina));
+        document.getElementById(`btn-refrescar-surtidos-${u.id_maquina}`)?.addEventListener('click', () => cargarSurtidos(u.id_maquina));
 
         cargarCarrilesYGrafica(u.id_maquina);
+        cargarSurtidos(u.id_maquina);
+        refrescoSurtidos = setInterval(() => {
+            if (!document.hidden && pestanaActiva === u.id_maquina) cargarSurtidos(u.id_maquina, true);
+        }, 30000);
         if (!USUARIO_SOLO_MAQUINAS_DASHBOARD) {
             cargarMantenimientos(u.id_maquina);
+        }
+    }
+
+    function fechaSurtido(valor) {
+        if (!valor) return 'Sin fecha';
+        const fecha = new Date(String(valor).replace(' ', 'T'));
+        return Number.isNaN(fecha.getTime()) ? String(valor) : fecha.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    function renderSurtidos(data) {
+        const r = data.resumen || {};
+        const recetas = data.recetas || [];
+        const movimientos = data.movimientos || [];
+        const errores = data.errores || [];
+
+        const htmlRecetas = recetas.length ? recetas.map(x => `
+            <article class="receta-avance">
+                <div class="receta-avance__top">
+                    <div><strong>${escapeHtml(x.folio)}</strong><div class="receta-avance__meta">${fechaSurtido(x.fecha_creacion)} · ${escapeHtml(x.origen || 'administrador')} · ${Number(x.cantidad_entregada)}/${Number(x.cantidad_solicitada)} piezas</div></div>
+                    <span class="estado-surtido e${Number(x.id_estatus)}">${escapeHtml(x.estatus_nombre)}</span>
+                </div>
+                <div class="receta-avance__pista"><i class="receta-avance__barra" style="width:${Math.max(0, Math.min(100, Number(x.porcentaje) || 0))}%"></i></div>
+                <div class="receta-avance__items">${(x.items || []).map(it => `<span>C${Number(it.numero_carril)} · ${escapeHtml(it.producto_nombre || it.codigo_barras || 'Producto')} · ${Number(it.cantidad_entregada)}/${Number(it.cantidad_solicitada)}</span>`).join('')}</div>
+            </article>`).join('') : '<p class="vacio">Esta máquina aún no tiene recetas registradas.</p>';
+
+        const eventos = [
+            ...movimientos.map(x => ({ tipo: 'salida', fecha: x.fecha_movimiento, titulo: `${Number(x.cantidad)} pieza(s) descontada(s)`, detalle: `Carril ${Number(x.numero_carril)} · ${x.producto_nombre || x.codigo_barras || 'Producto'} · ${x.numero_lote ? 'Lote ' + x.numero_lote + ' · ' : ''}${x.observaciones || x.tipo_movimiento || ''}` })),
+            ...errores.map(x => ({ tipo: 'error', fecha: x.fecha_creacion, titulo: x.codigo_error || 'Error de surtido', detalle: `${x.folio ? 'Receta ' + x.folio + ' · ' : ''}${x.numero_carril ? 'Carril ' + x.numero_carril + ' · ' : ''}${x.mensaje || 'Sin detalle'}` })),
+        ].sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || ''))).slice(0, 50);
+
+        const htmlEventos = eventos.length ? eventos.map(x => `
+            <article class="evento-surtido ${x.tipo === 'error' ? 'error' : ''}">
+                <span class="evento-surtido__icono">${x.tipo === 'error' ? '!' : '↓'}</span>
+                <div><b>${escapeHtml(x.titulo)}</b><p>${escapeHtml(x.detalle)}<br>${fechaSurtido(x.fecha)}</p></div>
+            </article>`).join('') : '<p class="vacio">Sin descuentos ni errores reportados.</p>';
+
+        return `
+            <div class="surtido-kpis">
+                <div class="surtido-kpi"><span>En proceso</span><b>${Number(r.en_proceso || 0)}</b></div>
+                <div class="surtido-kpi"><span>Parciales</span><b>${Number(r.parciales || 0)}</b></div>
+                <div class="surtido-kpi"><span>Piezas descontadas</span><b>${Number(r.piezas_entregadas || 0)}</b></div>
+                <div class="surtido-kpi"><span>Piezas pendientes</span><b>${Math.max(0, Number(r.piezas_solicitadas || 0) - Number(r.piezas_entregadas || 0))}</b></div>
+            </div>
+            <div class="surtido-grid">
+                <section class="surtido-bloque"><div class="surtido-bloque__head"><h3>Avance por receta</h3><span class="contador-mini">Últimas ${recetas.length}</span></div><div class="surtido-lista">${htmlRecetas}</div></section>
+                <section class="surtido-bloque"><div class="surtido-bloque__head"><h3>Movimientos y errores</h3><span class="contador-mini">${eventos.length} eventos</span></div><div class="surtido-lista">${htmlEventos}</div></section>
+            </div>`;
+    }
+
+    async function cargarSurtidos(idMaquina, silencioso = false) {
+        const cont = document.getElementById(`surtidos-${idMaquina}`);
+        if (!cont) return;
+        if (!silencioso) cont.innerHTML = '<p class="cargando">Cargando seguimiento…</p>';
+        try {
+            const json = await obtenerJSON(`api/maquina_surtidos.php?id_maquina=${idMaquina}`);
+            if (document.getElementById(`surtidos-${idMaquina}`) !== cont) return;
+            cont.innerHTML = renderSurtidos(json.data || {});
+        } catch (e) {
+            cont.innerHTML = `<p class="vacio">No se pudo cargar el seguimiento: ${escapeHtml(e.message || 'error de conexión')}.</p>`;
         }
     }
 
